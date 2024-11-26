@@ -16,7 +16,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
-public class Block {
+import java.io.Serializable;
+
+public class Block implements Serializable {
     public Vector2 position;
     public float width, height;
     public String type;  // e.g., "wood", "stone", "glass"

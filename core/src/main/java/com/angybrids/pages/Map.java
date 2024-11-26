@@ -11,10 +11,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.Color;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
-public class Map implements Screen {
+public class Map implements Screen, Serializable {
     final Main game;
 
     private Texture settingImage;
@@ -173,60 +174,38 @@ public class Map implements Screen {
                     }
                 } else if (levels.get(0).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(game));
+                    game.setScreen(new com.angybrids.level.Level(0, game));
 //                        game.setScreen(new Level(1, game));
 
-//                } else if (levels.get(1).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-//                        game.setScreen(new com.angybrids.level.Level(game));
-//
-//                        game.setScreen(new Level(2, game));
-//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                } else if (levels.get(2).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-//                        game.setScreen(new com.angybrids.level.Level(game));
-//
-//                        game.setScreen(new Level(3, game));
-//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                } else if (levels.get(3).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-//                        game.setScreen(new Level(4, game));
-//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//
-//                } else if (levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-//                        game.setScreen(new Level(5, game));
-//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//                else if (levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-//                        game.setScreen(new Level(6, game));
-//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
+                } else if (levels.get(1).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(1, game));
+                } else if (levels.get(2).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(2, game));
+
+                } else if (levels.get(3).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(3, game));
+
+
+                } else if (levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(4, game));
+
+                } else if (levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(5, game));
                 }
             }
         }
     }
+
+
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);

@@ -9,13 +9,15 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 //import com.angybrids.Level;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-public class WinScreen implements Screen {
+public class WinScreen implements Screen, Serializable {
     private Texture background;
     private Texture nextImage;
     private Texture mapImage;
@@ -39,15 +41,15 @@ public class WinScreen implements Screen {
         mapImage = new Texture("icons/mapIcon.png");
         winImage = new Texture("winTitle.png");
     }
-    public WinScreen(Main game) {
-        viewport = new FitViewport(1280, 720);
-        this.game = game;
-        this.level = 0;
-        this.background = new Texture("levelAssets/bg3.png");
-        nextImage = new Texture("icons/nextIcon.png");
-        mapImage = new Texture("icons/mapIcon.png");
-        winImage = new Texture("winTitle.png");
-    }
+//    public WinScreen(Main game) {
+//        viewport = new FitViewport(1280, 720);
+//        this.game = game;
+//        this.level = 0;
+//        this.background = new Texture("levelAssets/bg3.png");
+//        nextImage = new Texture("icons/nextIcon.png");
+//        mapImage = new Texture("icons/mapIcon.png");
+//        winImage = new Texture("winTitle.png");
+//    }
     @Override
     public void show() {
 
@@ -79,7 +81,7 @@ public class WinScreen implements Screen {
         else Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (Gdx.input.justTouched()) {
             if (nextButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                game.setScreen(new Level(game));
+                game.setScreen(new Level(level+1,game));
 //                try {
 //                    this.dispose();
 ////                    game.setScreen(new Level(level+1, game));

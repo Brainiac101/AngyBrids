@@ -2,9 +2,11 @@ package com.angybrids.level;
 
 import com.badlogic.gdx.math.Vector2;
 
+import java.io.Serializable;
+
 import static com.angybrids.level.Level.SCALE_FACTOR;
 
-public class Projectile {
+public class Projectile implements Serializable {
     private final float gravity;
     public Vector2 startVelocity;
     public Vector2 startPoint;

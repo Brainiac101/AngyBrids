@@ -14,10 +14,11 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 //import com.angybrids.Level;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class LoseScreen implements Screen {
+public class LoseScreen implements Screen, Serializable {
     private Texture background;
     private Texture retryImage;
     private Texture mapImage;
@@ -43,10 +44,10 @@ public class LoseScreen implements Screen {
         mapImage = new Texture("icons/mapIcon.png");
         failTitle = new Texture("failTitle.png");
     }
-    public LoseScreen(Main game) {
+    public LoseScreen(int level,Main game) {
         viewport = new FitViewport(1280, 720);
         this.game = game;
-        this.level = 0;
+        this.level = level;
         retryImage = new Texture("icons/retryIcon.png");
         mapImage = new Texture("icons/mapIcon.png");
         failTitle = new Texture("failTitle.png");
@@ -86,7 +87,7 @@ public class LoseScreen implements Screen {
 
         if (Gdx.input.justTouched()) {
             if (retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                game.setScreen(new Level(game));
+                game.setScreen(new Level(level,game));
 //                try {
 //                    this.dispose();
 //                    game.setScreen(new Level(level, game,selectedBirds));

@@ -14,9 +14,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-public class ShopPage implements Screen {
+public class ShopPage implements Screen, Serializable {
     final Main game;
     private FitViewport viewport;
     private Texture background;

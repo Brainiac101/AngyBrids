@@ -6,31 +6,43 @@ import com.angybrids.birds.*;
 import com.angybrids.blocks.Block;
 import com.angybrids.pages.*;
 import com.angybrids.pages.Map;
+import com.angybrids.pigs.*;
+import com.angybrids.pigs.SmallPig;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.JsonWriter;
 
+import java.io.*;
 import java.util.*;
 
-public class Level extends InputAdapter implements Screen {
-    private final Main game;
+public class Level extends InputAdapter implements Screen, Json.Serializable {
+    private Main game;
     private OrthographicCamera camera;
     private World world;
     private SpriteBatch batch;
     private Matrix4 debugMatrix;
     private Box2DDebugRenderer debugRenderer;
 
-    private Texture bg, pig, catapult, wood, stone, glass;
+    private Texture bg, /*pig,*/
+        catapult, wood, stone, glass, tempBird1, tempBird2;
     private final List<String> myBirds;
+    private final List<Pig> myPigs;
     private Bird curr;
-    private Sprite birdSprite, bgSprite, pigSprite, catapultSprite, woodSprite, stoneSprite, glassSprite;
-    private Body birdBody, bgBody, pigBody, catapultBody, woodBody, standBody;
+
+    private Sprite birdSprite, bgSprite, /*pigSprite,*/
+        catapultSprite, woodSprite, stoneSprite, glassSprite;
+    private Body birdBody, bgBody, /*pigBody,*/
+        catapultBody, woodBody, standBody;
 
     private final Projectile proj;
     private boolean flag = false;
@@ -39,16 +51,16 @@ public class Level extends InputAdapter implements Screen {
     private Vector3 touchPosition;
     private List<Body> bodiesToDelete;
     public static final float SCALE_FACTOR = 25f;
-    public int birdHP = 200;
-    private int pigHP = 1;
+    public int birdHP;
+    private int pigHP;
     List<Block> blockCollection = new ArrayList<>();
-    List<Block> blockCollectionStone = new ArrayList<>();
     private ShapeRenderer shapeRenderer;
 
     private List<String> roster;
-    private int ctr = 0;
+    private int ctr;
     private boolean launched;
 
+    public boolean isLoaded = false;
     private Texture pause;
     private Texture quit;
     private Texture resume;
@@ -58,16 +70,84 @@ public class Level extends InputAdapter implements Screen {
     private int birdCounter;
     private float screenTop;
     private float screenRight;
-//    Texture birdDeath1;
-//    Array<TextureRegion> frames;
-//    Animation<TextureRegion> birdDeathAnimation;
-//    float stateTime = 0f;
-//    boolean birdIsDead = false;
-//    Texture birdDeath2 = new Texture(Gdx.files.internal("birdDeath_2.png"));
-//    Texture birdDeath3 = new Texture(Gdx.files.internal("birdDeath_3.png"));
+    private int level;
+
+    public Level(int l, Main game) {
+        this.game = game;
+        level = l;
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.camera.setToOrtho(false);
+        this.touchPosition = new Vector3();
+        this.world = new World(new Vector2(0, -60f), true);
+        proj = new Projectile(world.getGravity().y);
+        this.batch = game.batch;
+        launch = new Vector2();
+        debugRenderer = new Box2DDebugRenderer();
+        bodiesToDelete = new ArrayList<>();
+        launched = false;
+        birdCounter = 3;
+
+        roster = new ArrayList<>();
+        roster.add("red");
+        roster.add("bomb");
+        roster.add("chuck");
+        roster.add("blue");
+        roster.add("terence");
+        roster.add("matilda");
+        roster.add("hal");
+        myPigs = new ArrayList<>();
+        myBirds = new ArrayList<>();
+        Random rand = new Random();
+        while (myBirds.size() < 3) {
+            int r = rand.nextInt(7);
+            if (myBirds.isEmpty()) myBirds.add(roster.get(r));
+            else if (!myBirds.contains(roster.get(r))) myBirds.add(roster.get(r));
+        }
+
+        shapeRenderer = new ShapeRenderer();
+    }
 
     public Level(Main game) {
         this.game = game;
+//        level = l;
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.camera.setToOrtho(false);
+        this.touchPosition = new Vector3();
+        this.world = new World(new Vector2(0, -60f), true);
+        proj = new Projectile(world.getGravity().y);
+        this.batch = game.batch;
+        launch = new Vector2();
+        debugRenderer = new Box2DDebugRenderer();
+        bodiesToDelete = new ArrayList<>();
+        launched = false;
+        pigCounter = 1;
+        birdCounter = 3;
+
+        roster = new ArrayList<>();
+        roster.add("red");
+        roster.add("bomb");
+        roster.add("chuck");
+        roster.add("blue");
+        roster.add("terence");
+        roster.add("matilda");
+        roster.add("hal");
+        myPigs = new ArrayList<>();
+        myBirds = new ArrayList<>();
+        Random rand = new Random();
+        while (myBirds.size() < 3) {
+            int r = rand.nextInt(7);
+            if (myBirds.isEmpty()) myBirds.add(roster.get(r));
+            else if (!myBirds.contains(roster.get(r))) myBirds.add(roster.get(r));
+        }
+
+        shapeRenderer = new ShapeRenderer();
+    }
+
+    public void setGame(Main game) {
+        this.game = game;
+    }
+
+    public Level() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.camera.setToOrtho(false);
         this.touchPosition = new Vector3();
@@ -80,34 +160,15 @@ public class Level extends InputAdapter implements Screen {
         launched = false;
         pigCounter = 1;
         birdCounter = 3;
-        roster = new ArrayList<>();
-        roster.add("red");
-        roster.add("bomb");
-        roster.add("chuck");
-        roster.add("blue");
-        roster.add("terence");
-        roster.add("matilda");
-        roster.add("hal");
+        myPigs = new ArrayList<>();
         myBirds = new ArrayList<>();
-        myBirds.add("red");
         shapeRenderer = new ShapeRenderer();
     }
 
     private void setActiveBird() {
         if (birdHP == 0 && ctr < 3) {
             ctr++;
-            Random rand = new Random();
-            String name = myBirds.get(0);
-            if (birdBody == null) {
-                int r = rand.nextInt(7);
-                name = roster.get(r);
-            }
-            while (!myBirds.isEmpty() && myBirds.contains(name)) {
-                int r = rand.nextInt(7);
-                name = roster.get(r);
-            }
-            myBirds.add(name);
-            switch (name) {
+            switch (myBirds.get(ctr)) {
                 case "red":
                     curr = new Red(this.world);
                     break;
@@ -132,12 +193,14 @@ public class Level extends InputAdapter implements Screen {
             }
             birdSprite = curr.getSprite();
             birdBody = curr.createBody();
-//            birdHP = curr.getHealth();
-            birdHP = 2;
+            birdHP = curr.getHealth();
         }
     }
 
     private void createStructure(float startX, float startY, int rows, int cols, float blockWidth, float blockHeight, String type) {
+//        Random rand = new Random();
+//        rows=rand.nextInt(4)+1;
+//        cols=rand.nextInt(4)+1;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 float posX = startX + j * blockWidth;
@@ -173,7 +236,7 @@ public class Level extends InputAdapter implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(this);
         bg = new Texture("levelAssets/bg2.jpeg");
-        pig = new Texture("pigs/pig.png");
+//        pig = new Texture("pigs/pig.png");
         catapult = new Texture("catapult.png");
         wood = new Texture("blocks/wood.png");
         stone = new Texture("blocks/stone.png");
@@ -182,20 +245,18 @@ public class Level extends InputAdapter implements Screen {
         quit = new Texture("icons/exitIcon.png");
         resume = new Texture("icons/resumeIcon.png");
         retry = new Texture("icons/retryIcon.png");
+        tempBird1 = new Texture("birds/" + myBirds.get(1) + ".png");
+        tempBird2 = new Texture("birds/" + myBirds.get(2) + ".png");
 
         screenRight = (camera.position.x + (camera.viewportWidth / 2)) / SCALE_FACTOR;
         screenTop = (camera.position.y + camera.viewportHeight / 2) / SCALE_FACTOR;
         bgSprite = new Sprite(bg);
-        pigSprite = new Sprite(pig);
         catapultSprite = new Sprite(catapult);
         woodSprite = new Sprite(wood);
         stoneSprite = new Sprite(stone);
         glassSprite = new Sprite(glass);
-
-        Random rand = new Random();
-        int r = rand.nextInt(7);
-        myBirds.add(roster.get(r));
-        switch (roster.get(r)) {
+        ctr = 3 - birdCounter;
+        switch (myBirds.get(ctr)) {
             case "red":
                 curr = new Red(this.world);
                 break;
@@ -220,16 +281,68 @@ public class Level extends InputAdapter implements Screen {
         }
         birdSprite = curr.getSprite();
         birdBody = curr.createBody();
-//        birdHP = curr.getHealth();
-        birdHP = 2;
-
-        pigSprite.setSize(pigSprite.getWidth() * 0.07f, pigSprite.getHeight() * 0.07f);
-        pigSprite.setPosition(925, 200);
+        birdHP = curr.getHealth();
         catapultSprite.setPosition(100, 95);
 
-        createStructure(900, 125, 3, 2, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
-//        createStructure(700, 125, 3, 2, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
-//        createStructure(900, 125, 3, 2, stoneSprite.getWidth(), stoneSprite.getHeight(), "glass");
+        if (!isLoaded) {
+            if (level == 0) {
+                createStructure(900, 125, 2, 2, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                SmallPig pig1 = new SmallPig(this.world, 900, 210);
+                pig1.createBody();
+                myPigs.add(pig1);
+            } else if (level == 1) {
+                createStructure(900, 125, 3, 2, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
+                SmallPig pig1 = new SmallPig(this.world, 900, 310);
+                pig1.createBody();
+                myPigs.add(pig1);
+
+            } else if (level == 2) {
+                createStructure(900, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                SmallPig pig1 = new SmallPig(this.world, 875, 310);
+                pig1.createBody();
+                myPigs.add(pig1);
+                SmallPig pig2 = new SmallPig(this.world, 1035, 310);
+                pig2.createBody();
+                myPigs.add(pig2);
+            } else if (level == 3) {
+                createStructure(750, 125, 2, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                Pig pig1 = new SmallPig(this.world, 730, 225);
+                pig1.createBody();
+                myPigs.add(pig1);
+                pig1 = new Crazy(this.world, 825, 110);
+                pig1.createBody();
+                myPigs.add(pig1);
+                createStructure(950, 125, 2, 1, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                pig1 = new SmallPig(this.world, 930, 225);
+                pig1.createBody();
+                myPigs.add(pig1);
+            } else if (level == 4) {
+                createStructure(650, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                SmallPig pig1 = new SmallPig(this.world, 635, 310);
+                pig1.createBody();
+                myPigs.add(pig1);
+                Crazy pig3 = new Crazy(this.world, 725, 110);
+                pig3.createBody();
+                myPigs.add(pig3);
+                Crazy pig4 = new Crazy(this.world, 810, 110);
+                pig4.createBody();
+                myPigs.add(pig4);
+                createStructure(950, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                SmallPig pig2 = new SmallPig(this.world, 935, 310);
+                pig2.createBody();
+                myPigs.add(pig2);
+            } else if (level == 5) {
+                createStructure(600, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                SmallPig pig1 = new SmallPig(this.world, 700, 320);
+                pig1.createBody();
+                myPigs.add(pig1);
+                createStructure(900, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                SmallPig pig2 = new SmallPig(this.world, 900, 320);
+                pig2.createBody();
+                myPigs.add(pig2);
+            }
+            pigCounter = myPigs.size();
+        }
 
         BodyDef bd = new BodyDef();
         bd.type = BodyDef.BodyType.StaticBody;
@@ -255,157 +368,149 @@ public class Level extends InputAdapter implements Screen {
         shape.setAsBox((catapultSprite.getWidth() / 2 - 15) / SCALE_FACTOR, (catapultSprite.getHeight() / 2 - 30) / SCALE_FACTOR);
         catapultBody.createFixture(shape, 1.0f);
         catapultBody.setUserData(catapultSprite);
-
-        bd.type = BodyDef.BodyType.DynamicBody;
-        bd.position.set((pigSprite.getX() + pigSprite.getWidth() / 2) / SCALE_FACTOR, (pigSprite.getY() + pigSprite.getHeight() / 2) / SCALE_FACTOR);
-        pigBody = world.createBody(bd);
-        shape = new PolygonShape();
-        shape.setAsBox(pigSprite.getWidth() / 2 / SCALE_FACTOR, pigSprite.getHeight() / 2 / SCALE_FACTOR);
-        pigBody.createFixture(shape, 0.1f);
-        pigBody.setUserData(pigSprite);
         shape.dispose();
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
+                System.out.println(birdCounter);
                 Fixture fig1 = contact.getFixtureA();
                 Fixture fig2 = contact.getFixtureB();
                 // bird + ground
                 if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(birdBody))) {
-                    System.out.println("zameen bc");
                     birdHP = 0;
 //                    birdIsDead=true;
 //                    birdBody.setLinearVelocity(0, 0);
                     bodiesToDelete.add(birdBody);
                     birdCounter--;
                     birdSprite = null;
-                }
-                // pig + bird
-                else if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(pigBody)) || (fig1.getBody().equals(pigBody) && fig2.getBody().equals(birdBody))) {
-                    if (birdHP == 0) {
-                        return;
-                    }
-                    if (pigHP > birdHP) {
-                        pigHP -= birdHP;
-                        birdHP = 0;
-                        birdCounter--;
-                        birdBody.setLinearVelocity(0, 0);
-                    } else {
-                        birdHP -= pigHP;
-                        pigHP = 0;
-                        pigCounter -= 1;
-                        if (birdHP == 0) {
-                            birdCounter--;
-                            bodiesToDelete.add(birdBody);
-                            birdSprite = null;
-                        }
-                        bodiesToDelete.add(pigBody);
-                        pigSprite = null;
-                        //destruction
-                    }
-                }
-                // pig + ground
-                else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(pigBody))) {
-                    if (pigHP == 0) {
-                        return;
-                    }
-                    if (Math.abs(pigBody.getLinearVelocity().y) >= 1) {
-                        pigHP -= 1;
-                        if (pigHP <= 0) {
-                            pigCounter -= 1;
-                            bodiesToDelete.add(pigBody);
-                            pigSprite = null;
-                            //destruction
-                        }
-                    }
                 } else {
-                    for (int i = 0; i < blockCollection.size(); i++) {
-                        Body temp = blockCollection.get(i).body;
-                        // block + bird
-                        if ((fig1.getBody().equals(temp) && fig2.getBody().equals(birdBody)) || (fig1.getBody().equals(birdBody) && fig2.getBody().equals(temp))) {
-                            System.out.println("lag gyi");
-//                            if (birdHP == 0) {
-//                                System.out.println("mar gya bkl");
-//                                bodiesToDelete.add(birdBody);
-//                                birdSprite = null;
-//                            }
-                            if (blockCollection.get(i).hp > birdHP) {
-                                System.out.println("block jeet gaya");
-                                blockCollection.get(i).hp -= birdHP;
+                    // pig + bird
+                    for (int j = 0; j < myPigs.size(); j++) {
+                        Body pigBody = myPigs.get(j).getBody();
+                        int pigHP = myPigs.get(j).getHealth();
+                        if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(pigBody)) || (fig1.getBody().equals(pigBody) && fig2.getBody().equals(birdBody))) {
+                            if (birdHP == 0) {
+                                continue;
+                            }
+                            if (pigHP > birdHP) {
+                                pigHP -= birdHP;
                                 birdHP = 0;
-                                if (blockCollection.get(i).hp == 0) {
-                                    bodiesToDelete.add(blockCollection.get(i).body);
-                                    blockCollection.get(i).sp = null;
-                                }
-                                birdBody.setLinearVelocity(1, 1);
                                 birdCounter--;
+                                birdBody.setLinearVelocity(birdBody.getLinearVelocity().x, 0);
                                 bodiesToDelete.add(birdBody);
-//                                birdIsDead=true;
                                 birdSprite = null;
                             } else {
-                                System.out.println("uwaaa bird jeet gayi");
-                                birdHP -= blockCollection.get(i).hp;
-                                System.out.println(blockCollection.get(i).hp);
-                                blockCollection.get(i).hp = 0;
-                                    birdBody.setLinearVelocity(1, 1);
+                                birdHP -= pigHP;
+                                pigHP = 0;
+                                pigCounter -= 1;
                                 if (birdHP == 0) {
                                     birdCounter--;
                                     bodiesToDelete.add(birdBody);
-                                    System.out.println("mar gya bkl");
                                     birdSprite = null;
                                 }
-//                                else birdBody.setLinearVelocity(birdBody.getLinearVelocity().x, 0);
-
-                                bodiesToDelete.add(blockCollection.get(i).body);
-                                blockCollection.get(i).sp = null;
-                                // + destruction
+                                bodiesToDelete.add(pigBody);
+                                myPigs.get(j).setSprite(null);
+                                //destruction
                             }
                         }
-                        // block + ground
-                        else if ((fig1.getBody().equals(temp) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(temp))) {
-                            if (Math.abs(temp.getLinearVelocity().y) >= 1) {
-                                blockCollection.get(i).hp -= 1;
-                                if (blockCollection.get(i).hp <= 0) {
-                                    bodiesToDelete.add(blockCollection.get(i).body);
-                                    blockCollection.get(i).sp = null;
-                                    // destruction
-                                }
-                            }
-                        }
-                        // pig + block
-                        else if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(birdBody))) {
-                            if (Math.abs(pigBody.getLinearVelocity().y) >= 1 || Math.abs(temp.getLinearVelocity().y) >= 1) {
+                        // pig + ground
+                        else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(pigBody))) {
+                            if (Math.abs(pigBody.getLinearVelocity().y) >= 1) {
                                 pigHP -= 1;
                                 if (pigHP <= 0) {
                                     pigCounter -= 1;
                                     bodiesToDelete.add(pigBody);
-                                    pigSprite = null;
-                                }
-                                blockCollection.get(i).hp -= 1;
-                                if (blockCollection.get(i).hp <= 0) {
-                                    bodiesToDelete.add(blockCollection.get(i).body);
-                                    blockCollection.get(i).sp = null;
+                                    myPigs.get(j).setSprite(null);
+                                    //destruction
                                 }
                             }
-                        }
-                        // block + block
-                        else if ((fig1.getBody().equals(temp) || fig2.getBody().equals(temp))) {
-                            if (Math.abs(temp.getLinearVelocity().y) >= 1) {
-                                blockCollection.get(i).hp -= 1;
-                                if (blockCollection.get(i).hp <= 0) {
-                                    bodiesToDelete.add(blockCollection.get(i).body);
-                                    blockCollection.get(i).sp = null;
+                        } else {
+                            for (int i = 0; i < blockCollection.size(); i++) {
+                                Body temp = blockCollection.get(i).body;
+                                // block + bird
+                                if ((fig1.getBody().equals(temp) && fig2.getBody().equals(birdBody)) || (fig1.getBody().equals(birdBody) && fig2.getBody().equals(temp))) {
+                                    if (birdHP == 0) {
+                                        continue;
+                                    }
+                                    if (blockCollection.get(i).hp > birdHP) {
+                                        blockCollection.get(i).hp -= birdHP;
+                                        birdHP = 0;
+                                        if (blockCollection.get(i).hp == 0) {
+                                            bodiesToDelete.add(blockCollection.get(i).body);
+                                            blockCollection.get(i).sp = null;
+                                        }
+                                        birdBody.setLinearVelocity(birdBody.getLinearVelocity().x, 0);
+                                        birdCounter--;
+                                        bodiesToDelete.add(birdBody);
+                                        birdSprite = null;
+                                    } else {
+                                        birdHP -= blockCollection.get(i).hp;
+                                        blockCollection.get(i).hp = 0;
+                                        birdBody.setLinearVelocity(birdBody.getLinearVelocity().x, 0);
+                                        if (birdHP == 0) {
+                                            birdCounter--;
+                                            bodiesToDelete.add(birdBody);
+                                            birdSprite = null;
+                                        }
+                                        bodiesToDelete.add(blockCollection.get(i).body);
+                                        blockCollection.get(i).sp = null;
+                                        // + destruction
+                                    }
+                                }
+                                // block + ground
+                                else if ((fig1.getBody().equals(temp) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(temp))) {
+                                    if (Math.abs(temp.getLinearVelocity().y) >= 1) {
+                                        blockCollection.get(i).hp -= 1;
+                                        if (blockCollection.get(i).hp <= 0) {
+                                            bodiesToDelete.add(blockCollection.get(i).body);
+                                            blockCollection.get(i).sp = null;
+                                            // destruction
+                                        }
+                                    }
+                                }
+                                // pig + block
+                                else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(temp)) || (fig1.getBody().equals(temp) && fig2.getBody().equals(pigBody))) {
+                                    if (Math.abs(pigBody.getLinearVelocity().y) >= 1 || Math.abs(temp.getLinearVelocity().y) >= 1) {
+                                        pigHP -= 1;
+                                        if (pigHP <= 0) {
+                                            pigCounter -= 1;
+                                            bodiesToDelete.add(pigBody);
+                                            myPigs.get(j).setSprite(null);
+                                        }
+                                        blockCollection.get(i).hp -= 1;
+                                        if (blockCollection.get(i).hp <= 0) {
+                                            bodiesToDelete.add(blockCollection.get(i).body);
+                                            blockCollection.get(i).sp = null;
+                                        }
+                                    }
+                                }
+                                // block + block
+                                else if ((fig1.getBody().equals(temp) || fig2.getBody().equals(temp))) {
+                                    if (Math.abs(temp.getLinearVelocity().y) >= 1) {
+                                        blockCollection.get(i).hp -= 1;
+                                        if (blockCollection.get(i).hp <= 0) {
+                                            bodiesToDelete.add(blockCollection.get(i).body);
+                                            blockCollection.get(i).sp = null;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+
             @Override
-            public void endContact(Contact contact) {}
+            public void endContact(Contact contact) {
+            }
+
             @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {}
+            public void preSolve(Contact contact, Manifold oldManifold) {
+            }
+
             @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {}
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+            }
         });
     }
 
@@ -418,20 +523,21 @@ public class Level extends InputAdapter implements Screen {
         Button quitButton = new Button(quit, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2 + 2, 1.6f);
         Button retryButton = new Button(retry, Gdx.graphics.getWidth() / 2 + 115, Gdx.graphics.getHeight() / 2 + 4, 1.6f);
         if ((birdBody.getPosition().x > screenRight || birdBody.getPosition().y > screenTop) && birdSprite != null) {
-            System.out.println("nigga");
             birdCounter--;
             birdHP = 0;
             bodiesToDelete.add(birdBody);
             birdSprite = null;
         }
         if (ctr < 2) setActiveBird();
-        if (birdSprite != null) birdSprite.setPosition((birdBody.getPosition().x * SCALE_FACTOR) - birdSprite.getWidth() / 2, (birdBody.getPosition().y * SCALE_FACTOR) - birdSprite.getHeight() / 2);
-        if (pigSprite != null) {
-            pigSprite.setOrigin(pigSprite.getWidth() / 2, pigSprite.getHeight() / 2); // Set origin to the center
-            pigSprite.setPosition((pigBody.getPosition().x * SCALE_FACTOR) - pigSprite.getWidth() / 2, (pigBody.getPosition().y * SCALE_FACTOR) - pigSprite.getHeight() / 2);
-            pigSprite.setRotation((float) Math.toDegrees(pigBody.getAngle())); // Rotate around the center
-//            pigSprite.setPosition((pigBody.getPosition().x * SCALE_FACTOR) - pigSprite.getWidth() / 2, (pigBody.getPosition().y * SCALE_FACTOR) - pigSprite.getHeight() / 2);
-//            pigSprite.setRotation((float) Math.toDegrees(pigBody.getAngle()));
+        if (birdSprite != null)
+            birdSprite.setPosition((birdBody.getPosition().x * SCALE_FACTOR) - birdSprite.getWidth() / 2, (birdBody.getPosition().y * SCALE_FACTOR) - birdSprite.getHeight() / 2);
+        for (int i = 0; i < myPigs.size(); i++) {
+            Sprite pigSprite = myPigs.get(i).getSprite();
+            if (pigSprite != null) {
+                pigSprite.setOrigin(pigSprite.getWidth() / 2, pigSprite.getHeight() / 2); // Set origin to the center
+                pigSprite.setPosition((myPigs.get(i).getBody().getPosition().x * SCALE_FACTOR) - pigSprite.getWidth() / 2, (myPigs.get(i).getBody().getPosition().y * SCALE_FACTOR) - pigSprite.getHeight() / 2);
+                pigSprite.setRotation((float) Math.toDegrees(myPigs.get(i).getBody().getAngle())); // Rotate around the center
+            }
         }
         for (int i = 0; i < blockCollection.size(); i++) {
             Sprite temp = blockCollection.get(i).sp;
@@ -440,30 +546,42 @@ public class Level extends InputAdapter implements Screen {
                 temp.setRotation((float) Math.toDegrees(blockCollection.get(i).body.getAngle()));
             }
         }
-        if (pigCounter <= 0 && birdCounter <= 0) game.setScreen(new WinScreen(game));
-        if (pigCounter <= 0) game.setScreen(new WinScreen(game));
-        if (birdCounter <= 0) game.setScreen(new LoseScreen(game));
+        if (pigCounter <= 0 && birdCounter <= 0) game.setScreen(new WinScreen(level, game));
+        if (pigCounter <= 0) game.setScreen(new WinScreen(level, game));
+        if (birdCounter <= 0) game.setScreen(new LoseScreen(level, game));
 
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
         update(delta);
+
         batch.begin();
         bgSprite.draw(batch);
-        if (pigSprite != null) pigSprite.draw(batch);
+        for (int i = 0; i < myPigs.size(); i++) {
+            Sprite temp = myPigs.get(i).getSprite();
+            if (temp != null) temp.draw(batch);
+        }
         for (int i = 0; i < blockCollection.size(); i++) {
             Sprite temp = blockCollection.get(i).sp;
             if (temp != null) temp.draw(batch);
         }
+        if (ctr == 0) {
+            Sprite temp = new Sprite(tempBird1);
+            temp.setSize(temp.getWidth() * 0.2f, temp.getHeight() * 0.2f);
+            temp.setPosition(75, 95);
+            temp.draw(batch);
+            temp = new Sprite(tempBird2);
+            temp.setSize(temp.getWidth() * 0.2f, temp.getHeight() * 0.2f);
+            temp.setPosition(25, 95);
+            temp.draw(batch);
+        } else if (ctr == 1) {
+            Sprite temp = new Sprite(tempBird2);
+            temp.setSize(temp.getWidth() * 0.2f, temp.getHeight() * 0.2f);
+            temp.setPosition(75, 95);
+            temp.draw(batch);
+        }
         catapultSprite.draw(batch);
         if (birdSprite != null) birdSprite.draw(batch);
-//        if (birdIsDead) {
-//            stateTime += Gdx.graphics.getDeltaTime();
-//            TextureRegion currentFrame = birdDeathAnimation.getKeyFrame(stateTime, false);
-//            batch.begin();
-//            batch.draw(currentFrame, birdSprite.getX(), birdSprite.getY());
-//            batch.end();
-//        }
         pauseButton.getButtonSprite().draw(batch);
         batch.end();
 
@@ -489,7 +607,6 @@ public class Level extends InputAdapter implements Screen {
             || (visibility && resumeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
-
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
         else Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (Gdx.input.justTouched()) {
@@ -499,39 +616,33 @@ public class Level extends InputAdapter implements Screen {
                 if (resumeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     visibility = false;
                 } else if (quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                    try {
+                        saveState();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     game.setScreen(new Map(this.game));
                 } else if (retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-//                    try {
-//                        this.dispose();
-                    game.setScreen(new Level(game));
-//                    }
-//                    catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                             IllegalAccessException e) {
-//                        throw new RuntimeException(e);
-//                    }
+                    game.setScreen(new Level(level, game));
                 } else {
                     visibility = false;
                 }
             }
         }
         if (flag) {
-            // Calculate the trajectory based on the initial touch position and drag
             float t = 0f;
-            float maxT = 1f; // Arbitrary max time for the trajectory calculation
-
-            // Set up the projectile equation with initial conditions
+            float maxT = 1f;
             proj.startPoint.set((initialTouchPosition.x * SCALE_FACTOR), (initialTouchPosition.y * SCALE_FACTOR));
             proj.startVelocity.set(launch.x * SCALE_FACTOR, launch.y * SCALE_FACTOR);
             ShapeRenderer shape = new ShapeRenderer();
             shape.setProjectionMatrix(camera.combined);
             shape.begin(ShapeRenderer.ShapeType.Filled);
-            shape.setColor(1, 1, 1, 1);
-            // Loop through time to calculate the trajectory
+//            shape.setColor(1, 1, 1, 1);
+            shape.setColor(Color.VIOLET);
             while (t < maxT) {
                 float x = proj.getX(t);
                 float y = proj.getY(t);
-
-                shape.circle(x, y, 3f);  // 5f is the radius of the circle
+                shape.circle(x, y, 3f);
                 t += 0.1f;
             }
             shape.end();
@@ -539,25 +650,34 @@ public class Level extends InputAdapter implements Screen {
         }
         debugMatrix = batch.getProjectionMatrix().cpy().scale(SCALE_FACTOR, SCALE_FACTOR, 0);
         debugRenderer.render(world, debugMatrix);
-//        if (birdDeathAnimation.isAnimationFinished(stateTime)) {
-//            // Bird has finished dying, remove it or do other cleanup
-//            birdIsDead = false;  // or destroy the bird entirely
-//        }
     }
 
     public void update(float delta) {
         // Step the physics simulation
         world.step(delta, 6, 2);
-
-        for (Body body : bodiesToDelete) {
+        Set<Body> s = new HashSet<Body>(bodiesToDelete);
+        for (Body body : s) {
             if (body != null) {
                 try {
+                    for (int i = 0; i < blockCollection.size(); i++) {
+                        if (blockCollection.get(i).body.equals(body)) {
+                            blockCollection.remove(i);
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < myPigs.size(); i++) {
+                        if (myPigs.get(i).getBody().equals(body)) {
+                            myPigs.remove(i);
+                            break;
+                        }
+                    }
                     world.destroyBody(body); // Destroy the body
                 } catch (Exception e) {
                     System.err.println("Error destroying body: " + e.getMessage());
                 }
             }
         }
+        s.clear();
         bodiesToDelete.clear(); // Clear the list
     }
 
@@ -580,14 +700,15 @@ public class Level extends InputAdapter implements Screen {
     @Override
     public void dispose() {
         bg.dispose();
-        pig.dispose();
+//        pig.dispose();
         wood.dispose();
         stone.dispose();
         glass.dispose();
+        tempBird1.dispose();
+        tempBird2.dispose();
         catapult.dispose();
         world.dispose();
         batch.dispose();
-
     }
 
     @Override
@@ -635,4 +756,113 @@ public class Level extends InputAdapter implements Screen {
         }
         return true;
     }
+
+    @Override
+    public void write(Json json) {
+        // Serialize level metadata
+        json.writeValue("level", this.level);
+        json.writeValue("birdCounter", this.birdCounter);
+        json.writeValue("pigCounter", this.pigCounter);
+
+        // Serialize remaining birds
+        json.writeValue("remainingBirds", this.myBirds);
+
+        // Serialize remaining pigs
+        List<HashMap<String, Object>> pigData = new ArrayList<>();
+        for (Pig pig : this.myPigs) {
+            HashMap<String, Object> pigInfo = new HashMap<>();
+            pigInfo.put("x", pig.getBody().getPosition().x * SCALE_FACTOR);
+            pigInfo.put("y", pig.getBody().getPosition().y * SCALE_FACTOR);
+            pigInfo.put("hp", pigHP);
+            pigData.add(pigInfo);
+        }
+        json.writeValue("pigs", pigData);
+
+        // Serialize block collection
+        List<HashMap<String, Object>> blockData = new ArrayList<>();
+        for (Block block : this.blockCollection) {
+            HashMap<String, Object> blockInfo = new HashMap<>();
+            blockInfo.put("x", block.body.getPosition().x * SCALE_FACTOR);
+            blockInfo.put("y", block.body.getPosition().y * SCALE_FACTOR);
+            blockInfo.put("width", block.width);
+            blockInfo.put("height", block.height);
+            blockInfo.put("type", block.type);
+            blockInfo.put("hp", block.hp);
+            blockData.add(blockInfo);
+        }
+        json.writeValue("blocks", blockData);
+    }
+
+    @Override
+    public void read(Json json, JsonValue jsonData) {
+        // Clear existing collections
+        this.myBirds.clear();
+        this.myPigs.clear();
+        this.blockCollection.clear();
+
+        // Deserialize level metadata
+        this.level = jsonData.getInt("level", 0);
+        this.birdCounter = jsonData.getInt("birdCounter", 3);
+        this.pigCounter = jsonData.getInt("pigCounter", 1);
+
+        // Deserialize remaining birds (with class/value format)
+        JsonValue birdsJson = jsonData.get("remainingBirds");
+        for (JsonValue birdJson : birdsJson) {
+            // Extract the actual value (bird name) from the "value" field
+            this.myBirds.add(birdJson.getString("value"));
+        }
+
+        // Deserialize remaining pigs
+        JsonValue pigsJson = jsonData.get("pigs");
+        for (JsonValue pigJson : pigsJson) {
+            float x = pigJson.get("x").getFloat("value");
+            float y = pigJson.get("y").getFloat("value");
+            SmallPig pig = new SmallPig(this.world, (int) (x * SCALE_FACTOR), (int) (y * SCALE_FACTOR));
+            pig.createBody();
+            this.myPigs.add(pig);
+            this.pigHP = pigJson.get("hp").getInt("value");
+        }
+
+        // Deserialize block collection
+        JsonValue blocksJson = jsonData.get("blocks");
+        for (JsonValue blockJson : blocksJson) {
+            float x = blockJson.get("x").getFloat("value");
+            float y = blockJson.get("y").getFloat("value");
+            float width = blockJson.get("width").getFloat("value");
+            float height = blockJson.get("height").getFloat("value");
+            String type = blockJson.get("type").getString("value");
+
+            // Use existing createBlock method
+            createBlock(x, y, width, height, type);
+        }
+    }
+
+    // Save game state to file
+    public void saveState() throws IOException {
+        Json json = new Json();
+        json.setOutputType(JsonWriter.OutputType.json);
+
+        // Create a file in the appropriate save directory
+        FileHandle saveFile = Gdx.files.local("state.json");
+        System.out.println(birdHP);
+        saveFile.writeString(json.toJson(this), false);
+    }
+
+    // Load game state from file
+    public static Level loadState(Main game) throws IOException {
+        Json json = new Json();
+
+        // Attempt to read the save file
+        FileHandle saveFile = Gdx.files.local("state.json");
+        if (saveFile.exists()) {
+            Level loadedLevel = json.fromJson(Level.class, saveFile.readString());
+            loadedLevel.setGame(game);
+            loadedLevel.isLoaded = true;
+//            json.readFields(loadedLevel, jsonData);
+            return loadedLevel;
+        }
+        // Return a new level if no save exists
+        return new Level(game);
+    }
 }
+

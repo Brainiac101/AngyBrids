@@ -31,6 +31,6 @@ public class Matilda extends Bird {
         this.sprite.setScale(scale);
     }
     public Body createBody(){
-        return super.createBody(0.15f);
+        return super.createBody(0.09f);
     }
 }

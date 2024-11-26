@@ -4,9 +4,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.*;
 
+import java.io.Serializable;
+
 import static com.angybrids.level.Level.SCALE_FACTOR;
 
-public abstract class Bird {
+public abstract class Bird implements Serializable {
     protected Sprite sprite;
     protected Body body;
     protected Texture texture;
@@ -32,17 +34,7 @@ public abstract class Bird {
         bd = new BodyDef();
     }
 
-    public Body createBody(float d) {
-        bd.type = BodyDef.BodyType.DynamicBody;
-        bd.position.set((sprite.getX() + sprite.getWidth() / 2) / SCALE_FACTOR, (sprite.getY() + sprite.getHeight() / 2) / SCALE_FACTOR);
-        body = world.createBody(bd);
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sprite.getWidth() / 2 / SCALE_FACTOR, sprite.getHeight() / 2 / SCALE_FACTOR);
-        body.createFixture(shape, d);
-        body.setUserData(sprite);
-        shape.dispose();
-        return body;
-    }
+    public abstract Body createBody();
 
     public void setSprite(Sprite sprite) {
         this.sprite = sprite;
@@ -68,13 +60,21 @@ public abstract class Bird {
         return health;
     }
 
-    public void setHealth(int health) {
-        this.health = health;
-    }
-
     public Sprite getSprite() {
         return sprite;
     }
 
-    public abstract Body createBody();
+    public Body createBody(float d) {
+        bd.type = BodyDef.BodyType.DynamicBody;
+        bd.position.set((sprite.getX() + sprite.getWidth() / 2) / SCALE_FACTOR, (sprite.getY() + sprite.getHeight() / 2) / SCALE_FACTOR);
+        body = world.createBody(bd);
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(sprite.getWidth() / 2 / SCALE_FACTOR, sprite.getHeight() / 2 / SCALE_FACTOR);
+        body.createFixture(shape, d);
+        body.setUserData(sprite);
+        shape.dispose();
+        return body;
+    }
+
+
 }

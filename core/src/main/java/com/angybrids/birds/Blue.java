@@ -21,7 +21,7 @@ public class Blue extends Bird {
         this.sprite = new Sprite(new Texture("birds/blue.png"));
         this.sprite.setSize(sprite.getWidth() * 0.3f, sprite.getHeight() * 0.3f);
         this.sprite.setPosition(125, 175);
-//        this.health = 1;
+        this.health = 3;
     }
 
     public Blue(int x, int y) {

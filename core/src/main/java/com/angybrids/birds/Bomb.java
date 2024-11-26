@@ -16,7 +16,7 @@ public class Bomb extends Bird {
         this.sprite = new Sprite(new Texture("birds/bomb.png"));
         this.sprite.setSize(this.sprite.getWidth() * 0.25f, this.sprite.getHeight() * 0.25f);
         this.sprite.setPosition(125, 175);
-        this.health = 3;
+        this.health = 4;
     }
 
     public Bomb() {

@@ -11,9 +11,10 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-public class BirdPage implements Screen {
+public class BirdPage implements Screen, Serializable {
     final Main game;
     private FitViewport viewport;
     private boolean visibility;

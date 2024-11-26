@@ -2,6 +2,7 @@ package com.angybrids.pages;
 
 import com.angybrids.Button;
 import com.angybrids.Main;
+import com.angybrids.level.Level;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Cursor;
@@ -11,7 +12,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
-public class HomePage implements Screen {
+import java.io.IOException;
+import java.io.Serializable;
+
+public class HomePage implements Screen, Serializable {
     final Main game;
     private Texture playButton;
     private Texture background;
@@ -70,10 +74,9 @@ public class HomePage implements Screen {
         float touchX = Gdx.input.getX();
         float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
         if (play.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
-            || quit.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || quit.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
+            || save.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-        else if (save.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
-            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
         else Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
 
         if (Gdx.input.justTouched()) {
@@ -81,6 +84,15 @@ public class HomePage implements Screen {
                 game.setScreen(new Map(game));
             else if (quit.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
                 System.exit(0);
+            else if (save.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)){
+                Level lvl = null;
+                try {
+                    lvl = Level.loadState(game);
+                } catch (IOException e) {
+                    System.out.println("lmao");
+                }
+                if(lvl != null) game.setScreen(lvl);
+            }
         }
 
     }
