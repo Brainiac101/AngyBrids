@@ -3,6 +3,7 @@ package com.angybrids.pages;
 
 import com.angybrids.Button;
 import com.angybrids.Main;
+import com.angybrids.level.Level;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Cursor;
@@ -11,7 +12,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.angybrids.Level;
+//import com.angybrids.Level;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -41,6 +42,15 @@ public class LoseScreen implements Screen {
         retryImage = new Texture("icons/retryIcon.png");
         mapImage = new Texture("icons/mapIcon.png");
         failTitle = new Texture("failTitle.png");
+    }
+    public LoseScreen(Main game) {
+        viewport = new FitViewport(1280, 720);
+        this.game = game;
+        this.level = 0;
+        retryImage = new Texture("icons/retryIcon.png");
+        mapImage = new Texture("icons/mapIcon.png");
+        failTitle = new Texture("failTitle.png");
+        this.background = new Texture("levelAssets/bg1.png");
     }
 
     @Override
@@ -76,13 +86,14 @@ public class LoseScreen implements Screen {
 
         if (Gdx.input.justTouched()) {
             if (retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                try {
-                    this.dispose();
-                    game.setScreen(new Level(level, game,selectedBirds));
-                } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                         IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                game.setScreen(new Level(game));
+//                try {
+//                    this.dispose();
+//                    game.setScreen(new Level(level, game,selectedBirds));
+//                } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                         IllegalAccessException e) {
+//                    throw new RuntimeException(e);
+//                }
             } else if (mapButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                 this.dispose();
                 game.setScreen(new Map(game));

@@ -17,7 +17,7 @@ public class Main extends Game {
     public void create() {
         batch = new SpriteBatch();
         music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
-        music.setVolume(0.75f);
+        music.setVolume(0.5f);
         music.setLooping(true);
         music.play();
         this.setScreen(new HomePage(this));

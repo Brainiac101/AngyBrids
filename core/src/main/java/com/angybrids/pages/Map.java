@@ -1,7 +1,7 @@
 package com.angybrids.pages;
 
 import com.angybrids.Button;
-import com.angybrids.Level;
+//import com.angybrids.Level;
 import com.angybrids.Main;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -172,58 +172,59 @@ public class Map implements Screen {
                         throw new RuntimeException(e);
                     }
                 } else if (levels.get(0).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(1, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else if (levels.get(1).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(2, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else if (levels.get(2).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(3, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else if (levels.get(3).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(4, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
+                    this.dispose();
+                    game.setScreen(new com.angybrids.level.Level(game));
+//                        game.setScreen(new Level(1, game));
 
-                } else if (levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(5, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                else if (levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    try {
-                        this.dispose();
-                        game.setScreen(new Level(6, game));
-                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                             IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
+//                } else if (levels.get(1).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+//                    try {
+//                        this.dispose();
+//                        game.setScreen(new com.angybrids.level.Level(game));
+//
+//                        game.setScreen(new Level(2, game));
+//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                             IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                } else if (levels.get(2).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+//                    try {
+//                        this.dispose();
+//                        game.setScreen(new com.angybrids.level.Level(game));
+//
+//                        game.setScreen(new Level(3, game));
+//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                             IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                } else if (levels.get(3).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+//                    try {
+//                        this.dispose();
+//                        game.setScreen(new Level(4, game));
+//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                             IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//
+//                } else if (levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+//                    try {
+//                        this.dispose();
+//                        game.setScreen(new Level(5, game));
+//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                             IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//                else if (levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+//                    try {
+//                        this.dispose();
+//                        game.setScreen(new Level(6, game));
+//                    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+//                             IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
                 }
             }
-
         }
     }
     @Override
