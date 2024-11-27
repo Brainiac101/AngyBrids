@@ -44,7 +44,7 @@ public class ShopPage implements Screen, Serializable {
     private Texture birdquakeImage;
     private Texture potionImage;
     private Texture coin;
-    private int coins;
+    private static int coins = 0;
 
     public ShopPage(Main game) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         this.game = game;
@@ -69,6 +69,14 @@ public class ShopPage implements Screen, Serializable {
         this.superchargeImage = new Supercharge().getImage();
         this.birdquakeImage = new Birdquake().getImage();
         this.potionImage = new Potion().getImage();
+    }
+
+    public static int getCoins() {
+        return coins;
+    }
+
+    public static void setCoins(int coin) {
+        coins = coin;
     }
 
     @Override
@@ -162,7 +170,7 @@ public class ShopPage implements Screen, Serializable {
 //        shapeRenderer.setColor(0.92f, 0.07f, 0.66f, 1f);
         shapeRenderer.rect(1000, Gdx.graphics.getHeight() - homeImage.getHeight() / 2 - 50, 120, 45);
         shapeRenderer.end();
-        coins = 1500; //dummy value
+//        coins = 1500; //dummy value
 
         game.batch.begin();
         font.setColor(0, 0, 0, 1f);

@@ -2,10 +2,7 @@ package com.angybrids.pigs;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 
 import java.io.Serializable;
 
@@ -73,7 +70,9 @@ public abstract class Pig implements Serializable {
         bd.type = BodyDef.BodyType.DynamicBody;
         bd.position.set((sprite.getX() + sprite.getWidth() / 2) / SCALE_FACTOR, (sprite.getY() + sprite.getHeight() / 2) / SCALE_FACTOR);
         body = world.createBody(bd);
+//        CircleShape shape = new CircleShape();
         PolygonShape shape = new PolygonShape();
+//        shape.setRadius(sprite.getWidth() / 2/SCALE_FACTOR);
         shape.setAsBox(sprite.getWidth() / 2 / SCALE_FACTOR, sprite.getHeight() / 2 / SCALE_FACTOR);
         body.createFixture(shape, d);
         body.setUserData(sprite);

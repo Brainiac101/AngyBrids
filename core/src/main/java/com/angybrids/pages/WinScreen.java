@@ -31,11 +31,11 @@ public class WinScreen implements Screen, Serializable {
         this.game = game;
         this.level = level;
         if (level % 3 == 1) {
-            this.background = new Texture("levelAssets/bg3.png");
+            this.background = new Texture("levelAssets/bg1.png");
         } else if (level % 3 == 0) {
             this.background = new Texture("levelAssets/bg2.png");
         } else {
-            this.background = new Texture("levelAssets/bg1.png");
+            this.background = new Texture("levelAssets/bg3.png");
         }
         nextImage = new Texture("icons/nextIcon.png");
         mapImage = new Texture("icons/mapIcon.png");

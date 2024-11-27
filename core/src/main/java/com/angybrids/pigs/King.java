@@ -33,7 +33,7 @@ public class King extends Pig {
         this.sprite = new Sprite(texture);
         this.sprite.setSize(sprite.getWidth() * 0.18f, sprite.getHeight() * 0.18f);
         this.sprite.setPosition(x, y);
-        this.health = 1;
+        this.health = 5;
     }
 
     public Body createBody() {
