@@ -40,7 +40,6 @@ public class LevelData {
 
     public void setBlockCollection(List<Block> blockCollection) {
         this.blockCollection = blockCollection;
-        System.out.println(blockCollection);
     }
     public void setLevel(int level) {
         this.level = level;

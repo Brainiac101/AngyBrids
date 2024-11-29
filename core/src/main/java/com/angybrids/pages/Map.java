@@ -47,7 +47,6 @@ public class Map implements Screen, Serializable {
 
     @Override
     public void show() {
-        Inventory.display();
     }
 
     @Override

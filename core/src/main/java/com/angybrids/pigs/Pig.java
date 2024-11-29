@@ -70,9 +70,6 @@ public abstract class Pig implements Serializable {
     }
 
     public Sprite getSprite() {
-        if(sprite == null) {
-//            System.out.println("net ki ma ki chu");
-        }
         return sprite;
     }
 

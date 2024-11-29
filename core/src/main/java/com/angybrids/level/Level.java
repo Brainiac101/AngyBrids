@@ -887,8 +887,8 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             }
         }
 
-        debugMatrix = batch.getProjectionMatrix().cpy().scale(SCALE_FACTOR, SCALE_FACTOR, 0);
-        debugRenderer.render(world, debugMatrix);
+//        debugMatrix = batch.getProjectionMatrix().cpy().scale(SCALE_FACTOR, SCALE_FACTOR, 0);
+//        debugRenderer.render(world, debugMatrix);
     }
 
     private void update(float delta) {
@@ -1055,7 +1055,9 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             blockInfo.put("y", block.body.getPosition().y * SCALE_FACTOR);
             blockInfo.put("width", block.width);
             blockInfo.put("height", block.height);
-            blockInfo.put("type", block.type);
+            if(block instanceof Wood) blockInfo.put("type", "wood");
+            else if(block instanceof Glass) blockInfo.put("type", "glass");
+            else blockInfo.put("type", "stone");
             blockInfo.put("hp", block.hp);
             blockData.add(blockInfo);
         }
