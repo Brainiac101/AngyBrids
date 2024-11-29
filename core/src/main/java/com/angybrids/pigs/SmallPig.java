@@ -1,28 +1,8 @@
-//package com.angybrids.pigs;
-//
-//import com.angybrids.birds.Bird;
-//import com.badlogic.gdx.graphics.Texture;
-//import com.badlogic.gdx.graphics.g2d.Sprite;
-//import com.badlogic.gdx.physics.box2d.Body;
-//import com.badlogic.gdx.physics.box2d.World;
-//
-//public class SmallPig {
-//    private Sprite image;
-//    public SmallPig(int x, int y){
-//        image = new Sprite(new Texture("pigs/pig.png"));
-//        image.setPosition(x, y);
-//        image.setScale(0.07f);
-//    }
-//    public Sprite getSprite() {
-//        return image;
-//    }
-//}
-
-
 package com.angybrids.pigs;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -49,8 +29,9 @@ public class SmallPig extends Pig {
         this.sprite.setPosition(x, y);
     }
 
-    public SmallPig(World world, int x, int y) {
+    public SmallPig(World world, float x, float y) {
         super(world);
+        position = new Vector2(x, y);
         texture = new Texture("pigs/pig.png");
         this.sprite = new Sprite(texture);
         this.sprite.setSize(sprite.getWidth() * 0.07f, sprite.getHeight() * 0.07f);

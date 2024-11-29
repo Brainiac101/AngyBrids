@@ -40,9 +40,7 @@ public class HomePage implements Screen, Serializable {
     }
 
     @Override
-    public void show() {
-        // Prepare your screen here.
-    }
+    public void show() {}
 
     @Override
     public void render(float delta) {
@@ -70,7 +68,6 @@ public class HomePage implements Screen, Serializable {
         save.getButtonSprite().draw(game.batch);
         game.batch.end();
 
-        //Changing cursor to a pointer while hovering over an icon
         float touchX = Gdx.input.getX();
         float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
         if (play.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
@@ -89,7 +86,8 @@ public class HomePage implements Screen, Serializable {
                 try {
                     lvl = Level.loadState(game);
                 } catch (IOException e) {
-                    System.out.println("lmao");
+                    System.out.println("Failed to load level");
+                    System.exit(0);
                 }
                 if(lvl != null) game.setScreen(lvl);
             }

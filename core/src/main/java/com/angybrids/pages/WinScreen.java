@@ -1,6 +1,5 @@
 package com.angybrids.pages;
 
-
 import com.angybrids.Button;
 import com.angybrids.Main;
 import com.angybrids.level.Level;
@@ -9,13 +8,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-//import com.angybrids.Level;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 
 public class WinScreen implements Screen, Serializable {
     private Texture background;
@@ -41,19 +37,8 @@ public class WinScreen implements Screen, Serializable {
         mapImage = new Texture("icons/mapIcon.png");
         winImage = new Texture("winTitle.png");
     }
-//    public WinScreen(Main game) {
-//        viewport = new FitViewport(1280, 720);
-//        this.game = game;
-//        this.level = 0;
-//        this.background = new Texture("levelAssets/bg3.png");
-//        nextImage = new Texture("icons/nextIcon.png");
-//        mapImage = new Texture("icons/mapIcon.png");
-//        winImage = new Texture("winTitle.png");
-//    }
     @Override
-    public void show() {
-
-    }
+    public void show() {}
 
     @Override
     public void render(float delta) {
@@ -82,13 +67,6 @@ public class WinScreen implements Screen, Serializable {
         if (Gdx.input.justTouched()) {
             if (nextButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                 game.setScreen(new Level(level+1,game));
-//                try {
-//                    this.dispose();
-////                    game.setScreen(new Level(level+1, game));
-//                } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                         IllegalAccessException e) {
-//                    throw new RuntimeException(e);
-//                }
             } else if (mapButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                 this.dispose();
                 game.setScreen(new Map(game));
@@ -98,7 +76,6 @@ public class WinScreen implements Screen, Serializable {
 
     @Override
     public void resize(int width, int height) {
-
     }
 
     @Override

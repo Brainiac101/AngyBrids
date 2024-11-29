@@ -4,8 +4,6 @@ import com.badlogic.gdx.math.Vector2;
 
 import java.io.Serializable;
 
-import static com.angybrids.level.Level.SCALE_FACTOR;
-
 public class Projectile implements Serializable {
     private final float gravity;
     public Vector2 startVelocity;
@@ -24,11 +22,4 @@ public class Projectile implements Serializable {
     public float getY(float t) {
         return 0.5f * gravity * t * t + startVelocity.y * t + startPoint.y ;
     }
-//public float getX(float t) {
-//    return (startVelocity.x * t + startPoint.x) * SCALE_FACTOR; // Apply scaling
-//}
-//
-//    public float getY(float t) {
-//        return (0.5f * gravity * t * t + startVelocity.y * t + startPoint.y) * SCALE_FACTOR; // Apply scaling
-//    }
 }

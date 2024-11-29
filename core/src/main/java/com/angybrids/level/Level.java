@@ -4,24 +4,21 @@ import com.angybrids.Button;
 import com.angybrids.Main;
 import com.angybrids.birds.*;
 import com.angybrids.blocks.Block;
-import com.angybrids.pages.LoseScreen;
+import com.angybrids.blocks.Glass;
+import com.angybrids.blocks.Stone;
+import com.angybrids.blocks.Wood;
+import com.angybrids.pages.*;
 import com.angybrids.pages.Map;
-import com.angybrids.pages.WinScreen;
-import com.angybrids.pigs.Crazy;
-import com.angybrids.pigs.King;
-import com.angybrids.pigs.Pig;
-import com.angybrids.pigs.SmallPig;
+import com.angybrids.pigs.*;
+import com.angybrids.powerUps.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Json;
@@ -39,47 +36,44 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     private Matrix4 debugMatrix;
     private Box2DDebugRenderer debugRenderer;
 
-    private Texture bg, /*pig,*/
-        catapult, wood, stone, glass, tempBird1, tempBird2;
-    private final List<String> myBirds;
-    private final List<Pig> myPigs;
+    private List<String> myBirds;
+    private List<Pig> myPigs;
+    public List<Body> bodiesToDelete;
+    private List<String> roster;
+    private boolean launched, charged, visibility;
+    private int ctr;
+    private int birdHP;
+    public int pigCounter;
+    public int birdCounter;
     private Bird curr;
 
-    private Sprite birdSprite, bgSprite, /*pigSprite,*/
-        catapultSprite, woodSprite, stoneSprite, glassSprite;
-    private Body birdBody, bgBody, /*pigBody,*/
-        catapultBody, woodBody, standBody;
+    private int level;
+
+    private Texture bg, catapult, wood, stone, glass, tempBird1, tempBird2;
+    private Texture powershotImage, superchargeImage, birdquakeImage, potionImage;
+    private Texture pause, quit, resume, retry;
+    private Sprite birdSprite, bgSprite, catapultSprite, woodSprite, stoneSprite, glassSprite;
+    private Body birdBody, bgBody, catapultBody;
+    private Button powershotButton, superchargeButton, birdquakeButton, potionButton, retryButton, resumeButton, pauseButton, quitButton;
 
     private final Projectile proj;
     private boolean flag = false;
     private final Vector2 initialTouchPosition = new Vector2();
     private final Vector2 launch;
     private Vector3 touchPosition;
-    private List<Body> bodiesToDelete;
-    public static final float SCALE_FACTOR = 25f;
-    public int birdHP;
-    private int pigHP;
     List<Block> blockCollection = new ArrayList<>();
     private ShapeRenderer shapeRenderer;
 
-    private List<String> roster;
-    private int ctr;
-    private boolean launched;
-
-    public boolean isLoaded = false;
-    private Texture pause;
-    private Texture quit;
-    private Texture resume;
-    private Texture retry;
-    private boolean visibility;
-    private int pigCounter;
-    private int birdCounter;
+    private boolean isLoaded = false;
     private float screenTop;
     private float screenRight;
-    private int level;
-    private float timer = 3.5f;
 
+    private float multiplier = 1f;
     public String alert;
+
+    private LevelData data;
+    private boolean reloaded;
+    public static final float SCALE_FACTOR = 25f;
 
     public Level(int l, Main game) {
         this.game = game;
@@ -112,13 +106,15 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             if (myBirds.isEmpty()) myBirds.add(roster.get(r));
             else if (!myBirds.contains(roster.get(r))) myBirds.add(roster.get(r));
         }
-
+        data = new LevelData();
+        data.setLevel(level);
+        data.setMyBird(myBirds);
         shapeRenderer = new ShapeRenderer();
     }
 
-    public Level(Main game) {
+    public Level(int l, Main game, boolean reloaded) {
         this.game = game;
-//        level = l;
+        this.level = l;
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.camera.setToOrtho(false);
         this.touchPosition = new Vector3();
@@ -129,8 +125,47 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         debugRenderer = new Box2DDebugRenderer();
         bodiesToDelete = new ArrayList<>();
         launched = false;
-        pigCounter = 1;
+        this.reloaded = reloaded;
         birdCounter = 3;
+        data = LevelDatabase.get(level);
+
+        myPigs = new ArrayList<>();
+        for (Pig p : data.getMyPig()) {
+            Pig temp;
+            if (p instanceof SmallPig) {
+                temp = new SmallPig(world, p.getPosition().x, p.getPosition().y);
+            } else if (p instanceof Crazy)
+                temp = new Crazy(world, p.getPosition().x, p.getPosition().y);
+            else temp = new King(world, p.getPosition().x, p.getPosition().y);
+            temp.createBody();
+            myPigs.add(temp);
+        }
+        blockCollection = new ArrayList<>();
+        for (Block b : data.getBlockCollection()) {
+
+            Block temp;
+            if (b instanceof Wood) {
+                temp = new Wood(world, b.position.x, b.position.y);
+            } else if (b instanceof Glass)
+                temp = new Glass(world, b.position.x, b.position.y);
+            else temp = new Stone(world, b.position.x, b.position.y);
+            temp.createBody();
+            blockCollection.add(temp);
+
+        }
+        myBirds = data.getMyBird();
+        shapeRenderer = new ShapeRenderer();
+    }
+
+    public Level(String x) {
+        this.game = new Main();
+        camera = new OrthographicCamera();
+        this.touchPosition = new Vector3();
+        proj = new Projectile(-9.8f);
+        launch = new Vector2();
+        launched = false;
+        pigCounter = 0;
+        birdCounter = 2;
 
         roster = new ArrayList<>();
         roster.add("red");
@@ -148,7 +183,20 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             if (myBirds.isEmpty()) myBirds.add(roster.get(r));
             else if (!myBirds.contains(roster.get(r))) myBirds.add(roster.get(r));
         }
+    }
 
+    public Level(Main game) {
+        this.game = game;
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.camera.setToOrtho(false);
+        this.touchPosition = new Vector3();
+        this.world = new World(new Vector2(0, -60f), true);
+        proj = new Projectile(world.getGravity().y);
+        this.batch = game.batch;
+        launch = new Vector2();
+        debugRenderer = new Box2DDebugRenderer();
+        bodiesToDelete = new ArrayList<>();
+        launched = false;
         shapeRenderer = new ShapeRenderer();
     }
 
@@ -206,10 +254,16 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         }
     }
 
+    public int handleWin() {
+        ShopPage.setCoins(ShopPage.getCoins() + 100);
+        return ShopPage.getCoins();
+    }
+
+    public int handleLoss() {
+        return ShopPage.getCoins();
+    }
+
     private void createStructure(float startX, float startY, int rows, int cols, float blockWidth, float blockHeight, String type) {
-//        Random rand = new Random();
-//        rows=rand.nextInt(4)+1;
-//        cols=rand.nextInt(4)+1;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 float posX = startX + j * blockWidth;
@@ -220,24 +274,13 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     }
 
     private void createBlock(float x, float y, float width, float height, String type) {
-        // Create the sprite for the block
-        Sprite blockSprite = new Sprite(new Texture("blocks/" + type + ".png"));
-        blockSprite.setSize(width, height);
-        blockSprite.setPosition(x, y);
-        // Create the BodyDef for the block
-        BodyDef bd = new BodyDef();
-        bd.type = BodyDef.BodyType.DynamicBody;
-        bd.position.set(x / SCALE_FACTOR, y / SCALE_FACTOR);
-        // Create the physics body
-        Body blockBody = world.createBody(bd);
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(width / 2 / SCALE_FACTOR, height / 2 / SCALE_FACTOR);
-        blockBody.createFixture(shape, 0.1f);
-        blockBody.setUserData(blockSprite);
-        shape.dispose();
-
-        Block temp = new Block(new Vector2(x, y), width, height, type);
-        temp.body = blockBody;
+        Block temp;
+        if (type.equals("wood")) {
+            temp = new Wood(world, x, y);
+        } else if (type.equals("stone")) {
+            temp = new Stone(world, x, y);
+        } else temp = new Glass(world, x, y);
+        temp.createBody();
         blockCollection.add(temp);
     }
 
@@ -252,14 +295,10 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(this);
-        if (level % 3 == 0) {
-            bg = new Texture("levelAssets/bg2.png");
-        } else if (level % 3 == 1) {
-            bg = new Texture("levelAssets/bg1.png");
-        } else if (level % 3 == 2) {
-            bg = new Texture("levelAssets/bg3.png");
-        }
-//        pig = new Texture("pigs/pig.png");
+        if (level % 3 == 0) bg = new Texture("levelAssets/bg2.png");
+        else if (level % 3 == 1) bg = new Texture("levelAssets/bg1.png");
+        else if (level % 3 == 2) bg = new Texture("levelAssets/bg3.png");
+
         catapult = new Texture("catapult.png");
         wood = new Texture("blocks/wood.png");
         stone = new Texture("blocks/stone.png");
@@ -270,6 +309,11 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         retry = new Texture("icons/retryIcon.png");
         tempBird1 = new Texture("birds/" + myBirds.get(1) + ".png");
         tempBird2 = new Texture("birds/" + myBirds.get(2) + ".png");
+
+        this.powershotImage = new Powershot().getImage();
+        this.superchargeImage = new Supercharge().getImage();
+        this.birdquakeImage = new Birdquake().getImage();
+        this.potionImage = new Potion().getImage();
 
         screenRight = (camera.position.x + (camera.viewportWidth / 2)) / SCALE_FACTOR;
         screenTop = (camera.position.y + camera.viewportHeight / 2) / SCALE_FACTOR;
@@ -306,40 +350,78 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         birdBody = curr.createBody();
         birdHP = curr.getHealth();
         catapultSprite.setPosition(100, 95);
-
-        if (!isLoaded) {
+        Random rand = new Random();
+        int randomnum = rand.nextInt(6);
+        int randnum = rand.nextInt(3);
+        String randText = "wood";
+        String randText2 = "wood";
+        if (randnum == 0) {
+            randText = "wood";
+        } else if (randnum == 1) {
+            randText = "glass";
+        } else if (randnum == 2) {
+            randText = "stone";
+        }
+        int randnum2 = rand.nextInt(3);
+        if (randnum2 == 0) {
+            randText2 = "wood";
+        } else if (randnum2 == 1) {
+            randText2 = "glass";
+        } else if (randnum2 == 2) {
+            randText2 = "stone";
+        }
+        if (!isLoaded && !reloaded) {
             if (level == 0) {
                 createStructure(900, 125, 2, 2, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
-                Pig pig1 = new SmallPig(this.world, 900, 210);
+                Pig pig1 = new SmallPig(this.world, 900, 245);
                 pig1.createBody();
                 myPigs.add(pig1);
-            } else if (level == 1) {
-                createStructure(900, 125, 3, 2, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
+            } else if (level == 1 || (randomnum == 1 && level > 5)) {
+                if (level == 1) {
+                    createStructure(900, 125, 3, 2, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
+                } else {
+                    createStructure(900, 125, 3, 2, woodSprite.getWidth(), woodSprite.getHeight(), randText);
+                }
                 Pig pig1 = new SmallPig(this.world, 900, 300);
                 pig1.createBody();
                 myPigs.add(pig1);
-            } else if (level == 2) {
-                createStructure(900, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+            } else if (level == 2 || ((randomnum == 2 || randomnum == 0) && level > 5)) {
+                if (level == 2) {
+                    createStructure(900, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                } else {
+                    createStructure(900, 125, 3, 3, woodSprite.getWidth(), woodSprite.getHeight(), randText);
+                }
                 Pig pig1 = new SmallPig(this.world, 875, 310);
                 pig1.createBody();
                 myPigs.add(pig1);
                 pig1 = new SmallPig(this.world, 1035, 310);
                 pig1.createBody();
                 myPigs.add(pig1);
-            } else if (level == 3) {
-                createStructure(750, 125, 2, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+            } else if (level == 3 || (randomnum == 3 && level > 5)) {
+                if (level == 3) {
+                    createStructure(750, 125, 2, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                    createStructure(950, 125, 2, 1, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                } else {
+                    createStructure(750, 125, 2, 1, glassSprite.getWidth(), glassSprite.getHeight(), randText);
+                    createStructure(950, 125, 2, 1, woodSprite.getWidth(), woodSprite.getHeight(), randText2);
+                }
                 Pig pig1 = new SmallPig(this.world, 730, 225);
                 pig1.createBody();
                 myPigs.add(pig1);
                 pig1 = new Crazy(this.world, 825, 110);
                 pig1.createBody();
                 myPigs.add(pig1);
-                createStructure(950, 125, 2, 1, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
                 pig1 = new SmallPig(this.world, 930, 225);
                 pig1.createBody();
                 myPigs.add(pig1);
-            } else if (level == 4) {
-                createStructure(650, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+            } else if (level == 4 || (randomnum == 4 && level > 5)) {
+                if (level == 4) {
+                    createStructure(650, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                    createStructure(950, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
+                } else {
+                    createStructure(650, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), randText);
+                    createStructure(950, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), randText2);
+                }
                 Pig pig1 = new SmallPig(this.world, 635, 310);
                 pig1.createBody();
                 myPigs.add(pig1);
@@ -349,25 +431,43 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                 pig1 = new Crazy(this.world, 810, 110);
                 pig1.createBody();
                 myPigs.add(pig1);
-                createStructure(950, 125, 3, 1, glassSprite.getWidth(), glassSprite.getHeight(), "glass");
                 pig1 = new SmallPig(this.world, 935, 310);
                 pig1.createBody();
                 myPigs.add(pig1);
-            } else if (level == 5) {
-                createStructure(750, 125, 3, 1, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+            } else if (level == 5 || (randomnum == 5 && level > 5)) {
+                if (level == 5) {
+                    createStructure(750, 125, 3, 1, woodSprite.getWidth(), woodSprite.getHeight(), "wood");
+                    createStructure(950, 125, 3, 1, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
+                } else {
+                    createStructure(750, 125, 3, 1, woodSprite.getWidth(), woodSprite.getHeight(), randText);
+                    createStructure(950, 125, 3, 1, stoneSprite.getWidth(), stoneSprite.getHeight(), randText2);
+                }
                 Pig pig1 = new Crazy(this.world, 720, 320);
                 pig1.createBody();
                 myPigs.add(pig1);
                 pig1 = new King(this.world, 800, 100);
                 pig1.createBody();
                 myPigs.add(pig1);
-                createStructure(950, 125, 3, 1, stoneSprite.getWidth(), stoneSprite.getHeight(), "stone");
                 pig1 = new Crazy(this.world, 920, 320);
                 pig1.createBody();
                 myPigs.add(pig1);
             }
-            pigCounter = myPigs.size();
+            List<Block> cpy = new ArrayList<>(blockCollection);
+            data.setBlockCollection(cpy);
+            List<Pig> clown = new ArrayList<>(myPigs);
+            data.setMyPig(clown);
+            LevelDatabase.add(data);
         }
+        pigCounter = myPigs.size();
+
+        powershotButton = new Button(powershotImage, 35, Gdx.graphics.getHeight() - 165, 0.25f);
+        superchargeButton = new Button(superchargeImage, 105, Gdx.graphics.getHeight() - 155, 0.35f);
+        birdquakeButton = new Button(birdquakeImage, 180, Gdx.graphics.getHeight() - 125, 0.35f);
+        potionButton = new Button(potionImage, 260, Gdx.graphics.getHeight() - 125, 0.45f);
+        pauseButton = new Button(pause, 20, Gdx.graphics.getHeight() - 90, 1f);
+        resumeButton = new Button(resume, Gdx.graphics.getWidth() / 2 - 125, Gdx.graphics.getHeight() / 2, 1.4f);
+        quitButton = new Button(quit, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2 + 2, 1.6f);
+        retryButton = new Button(retry, Gdx.graphics.getWidth() / 2 + 115, Gdx.graphics.getHeight() / 2 + 4, 1.6f);
 
         BodyDef bd = new BodyDef();
         bd.type = BodyDef.BodyType.StaticBody;
@@ -399,17 +499,26 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             public void beginContact(Contact contact) {
                 Fixture fig1 = contact.getFixtureA();
                 Fixture fig2 = contact.getFixtureB();
-                // bird + ground
                 if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(birdBody))) {
                     birdGroundContact();
+                    if (charged) {
+                        explode(birdBody);
+                        charged = false;
+                        birdHP = 0;
+                    }
                 } else {
-                    // pig + bird
                     for (int j = 0; j < myPigs.size(); j++) {
                         Body pigBody = myPigs.get(j).getBody();
                         int pigHP = myPigs.get(j).getHealth();
                         if ((fig1.getBody().equals(birdBody) && fig2.getBody().equals(pigBody)) || (fig1.getBody().equals(pigBody) && fig2.getBody().equals(birdBody))) {
+                            if (myPigs.get(j).getSprite() == null) return;
                             if (birdHP == 0) {
                                 continue;
+                            }
+                            if (charged) {
+                                explode(birdBody);
+                                charged = false;
+                                birdHP = 0;
                             }
                             if (pigHP > birdHP) {
                                 pigHP -= birdHP;
@@ -431,11 +540,9 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                                 }
                                 bodiesToDelete.add(pigBody);
                                 myPigs.get(j).setSprite(null);
-                                //destruction
                             }
-                        }
-                        // pig + ground
-                        else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(pigBody))) {
+                        } else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(pigBody))) {
+                            if (myPigs.get(j).getSprite() == null) return;
                             if (Math.abs(pigBody.getLinearVelocity().y) >= 1) {
                                 pigHP -= 1;
                                 myPigs.get(j).setHealth(pigHP);
@@ -443,16 +550,20 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                                     pigCounter -= 1;
                                     bodiesToDelete.add(pigBody);
                                     myPigs.get(j).setSprite(null);
-                                    //destruction
                                 }
                             }
                         } else {
                             for (int i = 0; i < blockCollection.size(); i++) {
+                                if (blockCollection.get(i).sp == null) return;
                                 Body temp = blockCollection.get(i).body;
-                                // block + bird
                                 if ((fig1.getBody().equals(temp) && fig2.getBody().equals(birdBody)) || (fig1.getBody().equals(birdBody) && fig2.getBody().equals(temp))) {
                                     if (birdHP == 0) {
                                         continue;
+                                    }
+                                    if (charged) {
+                                        explode(birdBody);
+                                        charged = false;
+                                        birdHP = 0;
                                     }
                                     if (blockCollection.get(i).hp > birdHP) {
                                         blockCollection.get(i).hp -= birdHP;
@@ -476,22 +587,19 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                                         }
                                         bodiesToDelete.add(blockCollection.get(i).body);
                                         blockCollection.get(i).sp = null;
-                                        // + destruction
                                     }
-                                }
-                                // block + ground
-                                else if ((fig1.getBody().equals(temp) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(temp))) {
+                                } else if ((fig1.getBody().equals(temp) && fig2.getBody().equals(bgBody)) || (fig1.getBody().equals(bgBody) && fig2.getBody().equals(temp))) {
+                                    if (blockCollection.get(i).sp == null) return;
                                     if (Math.abs(temp.getLinearVelocity().y) >= 1) {
                                         blockCollection.get(i).hp -= 1;
                                         if (blockCollection.get(i).hp <= 0) {
                                             bodiesToDelete.add(blockCollection.get(i).body);
                                             blockCollection.get(i).sp = null;
-                                            // destruction
                                         }
                                     }
-                                }
-                                // pig + block
-                                else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(temp)) || (fig1.getBody().equals(temp) && fig2.getBody().equals(pigBody))) {
+                                } else if ((fig1.getBody().equals(pigBody) && fig2.getBody().equals(temp)) || (fig1.getBody().equals(temp) && fig2.getBody().equals(pigBody))) {
+                                    if (myPigs.get(j).getSprite() == null) return;
+                                    if (blockCollection.get(i).sp == null) return;
                                     if (Math.abs(pigBody.getLinearVelocity().y) >= 1 || Math.abs(temp.getLinearVelocity().y) >= 1) {
                                         pigHP -= 1;
                                         myPigs.get(j).setHealth(pigHP);
@@ -506,22 +614,19 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                                             blockCollection.get(i).sp = null;
                                         }
                                     }
-                                }
-                                //pig+pig
-                                else if ((fig1.getBody().equals(pigBody) || fig2.getBody().equals(pigBody))) {
-                                    System.out.println("negro");
+                                } else if ((fig1.getBody().equals(pigBody) || fig2.getBody().equals(pigBody))) {
+                                    if (myPigs.get(j).getSprite() == null) return;
                                     if (Math.abs(pigBody.getLinearVelocity().y) >= 1) {
-                                        System.out.println(pigHP);
                                         pigHP -= 1;
                                         myPigs.get(j).setHealth(pigHP);
                                         if (pigHP <= 0) {
+                                            pigCounter -= 1;
                                             bodiesToDelete.add(myPigs.get(j).getBody());
                                             myPigs.get(j).setSprite(null);
                                         }
                                     }
-                                }
-                                // block + block
-                                else if ((fig1.getBody().equals(temp) || fig2.getBody().equals(temp))) {
+                                } else if ((fig1.getBody().equals(temp) || fig2.getBody().equals(temp))) {
+                                    if (blockCollection.get(i).sp == null) return;
                                     if (Math.abs(temp.getLinearVelocity().y) >= 1) {
                                         blockCollection.get(i).hp -= 1;
                                         if (blockCollection.get(i).hp <= 0) {
@@ -553,12 +658,8 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public void render(float delta) {
         camera.update();
-//        world.step(1 / 120f, 6, 2);
         world.step(1 / 60f, 6, 2);
-        Button pauseButton = new Button(pause, 20, Gdx.graphics.getHeight() - 90, 1f);
-        Button resumeButton = new Button(resume, Gdx.graphics.getWidth() / 2 - 125, Gdx.graphics.getHeight() / 2, 1.4f);
-        Button quitButton = new Button(quit, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2 + 2, 1.6f);
-        Button retryButton = new Button(retry, Gdx.graphics.getWidth() / 2 + 115, Gdx.graphics.getHeight() / 2 + 4, 1.6f);
+
         if ((birdBody.getPosition().x > screenRight || birdBody.getPosition().y > screenTop) && birdSprite != null) {
             birdCounter--;
             birdHP = 0;
@@ -577,6 +678,7 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             if ((temp.getBody().getPosition().x > screenRight || temp.getBody().getPosition().y > screenTop) && temp.getSprite() != null) {
                 bodiesToDelete.add(temp.getBody());
                 temp.setSprite(null);
+                pigCounter--;
             }
         }
         if (ctr < 2) setActiveBird();
@@ -585,9 +687,9 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         for (int i = 0; i < myPigs.size(); i++) {
             Sprite pigSprite = myPigs.get(i).getSprite();
             if (pigSprite != null) {
-                pigSprite.setOrigin(pigSprite.getWidth() / 2, pigSprite.getHeight() / 2); // Set origin to the center
+                pigSprite.setOrigin(pigSprite.getWidth() / 2, pigSprite.getHeight() / 2);
                 pigSprite.setPosition((myPigs.get(i).getBody().getPosition().x * SCALE_FACTOR) - pigSprite.getWidth() / 2, (myPigs.get(i).getBody().getPosition().y * SCALE_FACTOR) - pigSprite.getHeight() / 2);
-                pigSprite.setRotation((float) Math.toDegrees(myPigs.get(i).getBody().getAngle())); // Rotate around the center
+                pigSprite.setRotation((float) Math.toDegrees(myPigs.get(i).getBody().getAngle()));
             }
         }
         for (int i = 0; i < blockCollection.size(); i++) {
@@ -602,6 +704,11 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
         update(delta);
+
+        BitmapFont font = new BitmapFont();
+        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        font.getData().setScale(1.5f);
+        font.setColor(Color.BLACK);
 
         batch.begin();
         bgSprite.draw(batch);
@@ -631,6 +738,14 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         catapultSprite.draw(batch);
         if (birdSprite != null) birdSprite.draw(batch);
         pauseButton.getButtonSprite().draw(batch);
+        powershotButton.getButtonSprite().draw(batch);
+        potionButton.getButtonSprite().draw(batch);
+        superchargeButton.getButtonSprite().draw(batch);
+        birdquakeButton.getButtonSprite().draw(batch);
+        font.draw(batch, Integer.toString(Inventory.getItemCount("power")), powershotButton.getButtonSprite().getX() + 92, powershotButton.getButtonSprite().getY() + 85);
+        font.draw(batch, Integer.toString(Inventory.getItemCount("charge")), superchargeButton.getButtonSprite().getX() + 92, superchargeButton.getButtonSprite().getY() + 73);
+        font.draw(batch, Integer.toString(Inventory.getItemCount("quake")), birdquakeButton.getButtonSprite().getX() + 92, birdquakeButton.getButtonSprite().getY() + 50);
+        font.draw(batch, Integer.toString(Inventory.getItemCount("potion")), potionButton.getButtonSprite().getX() + 92, potionButton.getButtonSprite().getY() + 50);
         batch.end();
 
         if (visibility) {
@@ -650,13 +765,23 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
 
         float touchX = Gdx.input.getX();
         float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
-        if (pauseButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
+        if ((Inventory.getItemCount("quake") <= 0 && birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (Inventory.getItemCount("charge") <= 0 && superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (Inventory.getItemCount("potion") <= 0 && potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (Inventory.getItemCount("power") <= 0 && powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
+            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
+        else if (pauseButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
             || (visibility && pauseButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && resumeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
-            || (visibility && retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
+            || (visibility && retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            || (powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
         else Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+
         if (Gdx.input.justTouched()) {
             if (!visibility && pauseButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                 visibility = true;
@@ -671,9 +796,50 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                     }
                     game.setScreen(new Map(this.game));
                 } else if (retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                    game.setScreen(new Level(level, game));
+                    game.setScreen(new Level(level, game, true));
                 } else {
                     visibility = false;
+                }
+            }
+            if (superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (Inventory.getItemCount("charge") > 0) {
+                    Inventory.useItem("charge");
+                    charged = true;
+                }
+            }
+            if (powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (Inventory.getItemCount("power") > 0) {
+                    Inventory.useItem("power");
+                    multiplier = 5;
+                }
+            }
+            if (potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (Inventory.getItemCount("potion") > 0) {
+                    Inventory.useItem("potion");
+                    birdHP += 4;
+                }
+            }
+            if (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (Inventory.getItemCount("quake") > 0) {
+                    Inventory.useItem("quake");
+                    for (Pig pig : myPigs) {
+                        if (pig.getHealth() > 0) {
+                            pig.setHealth(pig.getHealth() - 1);
+                            if (pig.getHealth() <= 0) {
+                                bodiesToDelete.add(pig.getBody());
+                                pig.setSprite(null);
+                            }
+                        }
+                    }
+                    for (Block block : blockCollection) {
+                        if (block.hp > 0) {
+                            block.hp -= 1;
+                            if (block.hp <= 0) {
+                                bodiesToDelete.add(block.body);
+                                block.sp = null;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -685,7 +851,6 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             ShapeRenderer shape = new ShapeRenderer();
             shape.setProjectionMatrix(camera.combined);
             shape.begin(ShapeRenderer.ShapeType.Filled);
-//            shape.setColor(1, 1, 1, 1);
             shape.setColor(Color.VIOLET);
             while (t < maxT) {
                 float x = proj.getX(t);
@@ -705,21 +870,28 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
         }
         if (temp) {
             if (pigCounter <= 0 && birdCounter <= 0) {
-                com.angybrids.pages.ShopPage.setCoins(com.angybrids.pages.ShopPage.getCoins() + 100);
+                handleWin();
+                if (level % 6 == 5) {
+                    Map.levelctr++;
+                }
                 game.setScreen(new WinScreen(level, game));
             } else if (pigCounter <= 0) {
-                com.angybrids.pages.ShopPage.setCoins(com.angybrids.pages.ShopPage.getCoins() + 100);
+                handleWin();
+                if (level % 6 == 5) {
+                    Map.levelctr++;
+                }
                 game.setScreen(new WinScreen(level, game));
-            } else if (birdCounter <= 0) game.setScreen(new LoseScreen(level, game));
+            } else if (birdCounter <= 0) {
+                handleLoss();
+                game.setScreen(new LoseScreen(level, game));
+            }
         }
 
-//        debugMatrix = batch.getProjectionMatrix().cpy().scale(SCALE_FACTOR, SCALE_FACTOR, 0);
-//        debugRenderer.render(world, debugMatrix);
+        debugMatrix = batch.getProjectionMatrix().cpy().scale(SCALE_FACTOR, SCALE_FACTOR, 0);
+        debugRenderer.render(world, debugMatrix);
     }
 
-    public void update(float delta) {
-        timer = 3f;
-        // Step the physics simulation
+    private void update(float delta) {
         world.step(delta, 6, 2);
         Set<Body> s = new HashSet<Body>(bodiesToDelete);
         for (Body body : s) {
@@ -737,14 +909,53 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                             break;
                         }
                     }
-                    world.destroyBody(body); // Destroy the body
+                    world.destroyBody(body);
                 } catch (Exception e) {
                     System.err.println("Error destroying body: " + e.getMessage());
                 }
             }
         }
         s.clear();
-        bodiesToDelete.clear(); // Clear the list
+        bodiesToDelete.clear();
+    }
+
+    public void explode(Body body) {
+        float explosionRadius = 100f;
+        Vector2 explosionCenter = body.getPosition();
+        world.QueryAABB(new QueryCallback() {
+                            @Override
+                            public boolean reportFixture(Fixture fixture) {
+                                Body body = fixture.getBody();
+                                Vector2 bodyPos = body.getPosition();
+                                if (bodyPos.dst(explosionCenter) <= explosionRadius) {
+                                    for (Pig pig : myPigs) {
+                                        if (body.equals(pig.getBody())) {
+                                            pig.setHealth(pig.getHealth() - 1);
+                                            if (pig.getHealth() <= 0) {
+                                                bodiesToDelete.add(pig.getBody());
+                                                pig.setSprite(null);
+                                            }
+                                        }
+                                    }
+                                    for (Block b : blockCollection) {
+                                        if (body.equals(b.body)) {
+                                            b.hp = b.hp - 1;
+                                            if (b.hp <= 0) {
+                                                bodiesToDelete.add(b.body);
+                                                b.sp = null;
+                                            }
+                                        }
+                                    }
+                                }
+                                return true;
+                            }
+                        },
+            explosionCenter.x - explosionRadius,
+            explosionCenter.y - explosionRadius,
+            explosionCenter.x + explosionRadius,
+            explosionCenter.y + explosionRadius);
+
+        bodiesToDelete.add(body);
     }
 
     @Override
@@ -766,7 +977,6 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public void dispose() {
         bg.dispose();
-//        pig.dispose();
         wood.dispose();
         stone.dispose();
         glass.dispose();
@@ -779,9 +989,7 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // Convert screen coordinates to world coordinates
         Vector3 touchPosition = camera.unproject(new Vector3(screenX, screenY, 0));
-        // Check if the touch is within the bounds of the bird
         flag = catapultSprite.getBoundingRectangle().contains(touchPosition.x, touchPosition.y);
         touchPosition.x /= SCALE_FACTOR;
         touchPosition.y /= SCALE_FACTOR;
@@ -792,9 +1000,7 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if (flag && !launched) {
-            // Convert screen coordinates to world coordinates
             Vector3 touchPosition = camera.unproject(new Vector3(screenX, screenY, 0));
-            // Update the bird's position to follow the drag
             touchPosition.x /= SCALE_FACTOR;
             touchPosition.y /= SCALE_FACTOR;
             launch.set(initialTouchPosition.x - touchPosition.x, initialTouchPosition.y - touchPosition.y);
@@ -805,19 +1011,15 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (flag && !launched) {
-            // Convert the final touch position to world coordinates
             touchPosition = camera.unproject(new Vector3(screenX, screenY, 0));
             touchPosition.x /= SCALE_FACTOR;
             touchPosition.y /= SCALE_FACTOR;
-            // Calculate the velocity based on the initial touch position and final touch position
-            float impulseX = initialTouchPosition.x - touchPosition.x;  // Inverted direction
-            float impulseY = initialTouchPosition.y - touchPosition.y;  // Inverted direction
-//            Vector2 direction = new Vector2(impulseX, impulseY).nor();
+            float impulseX = initialTouchPosition.x - touchPosition.x;
+            float impulseY = initialTouchPosition.y - touchPosition.y;
             float dragDistance = initialTouchPosition.dst(touchPosition.x, touchPosition.y);
-            launch.set(impulseX, impulseY).scl(dragDistance * 0.09f);
-//            launch.limit(20);
+            launch.set(impulseX, impulseY).scl(dragDistance * 0.09f * multiplier);
             birdBody.applyLinearImpulse(launch, birdBody.getWorldCenter(), true);
-            // Reset the flag to stop tracking the drag
+            multiplier = 1;
             flag = false;
         }
         return true;
@@ -825,26 +1027,27 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
 
     @Override
     public void write(Json json) {
-        // Serialize level metadata
         json.writeValue("level", this.level);
         json.writeValue("birdCounter", this.birdCounter);
         json.writeValue("pigCounter", this.pigCounter);
-
-        // Serialize remaining birds
+        json.writeValue("coins", ShopPage.getCoins());
         json.writeValue("remainingBirds", this.myBirds);
-
-        // Serialize remaining pigs
+        json.writeValue("levelctr", Map.levelctr);
+        json.writeValue("inventory", Inventory.inventory);
         List<HashMap<String, Object>> pigData = new ArrayList<>();
         for (Pig pig : this.myPigs) {
             HashMap<String, Object> pigInfo = new HashMap<>();
-            pigInfo.put("x", pig.getBody().getPosition().x * SCALE_FACTOR);
-            pigInfo.put("y", pig.getBody().getPosition().y * SCALE_FACTOR);
-            pigInfo.put("hp", pigHP);
+            pigInfo.put("x", pig.getBody().getPosition().x * SCALE_FACTOR - 35);
+            pigInfo.put("y", pig.getBody().getPosition().y * SCALE_FACTOR - 35);
+            pigInfo.put("hp", pig.getHealth());
+            int val = 0;
+            if (pig instanceof SmallPig) val = 1;
+            else if (pig instanceof Crazy) val = 2;
+            else if (pig instanceof King) val = 3;
+            pigInfo.put("val", val);
             pigData.add(pigInfo);
         }
         json.writeValue("pigs", pigData);
-
-        // Serialize block collection
         List<HashMap<String, Object>> blockData = new ArrayList<>();
         for (Block block : this.blockCollection) {
             HashMap<String, Object> blockInfo = new HashMap<>();
@@ -861,35 +1064,44 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
 
     @Override
     public void read(Json json, JsonValue jsonData) {
-        // Clear existing collections
         this.myBirds.clear();
         this.myPigs.clear();
         this.blockCollection.clear();
 
-        // Deserialize level metadata
         this.level = jsonData.getInt("level", 0);
         this.birdCounter = jsonData.getInt("birdCounter", 3);
         this.pigCounter = jsonData.getInt("pigCounter", 1);
-
-        // Deserialize remaining birds (with class/value format)
+        ShopPage.setCoins(jsonData.getInt("coins", 0));
         JsonValue birdsJson = jsonData.get("remainingBirds");
+        myBirds = new ArrayList<>();
         for (JsonValue birdJson : birdsJson) {
-            // Extract the actual value (bird name) from the "value" field
             this.myBirds.add(birdJson.getString("value"));
         }
-
-        // Deserialize remaining pigs
+        Map.levelctr = jsonData.getInt("levelctr", 0);
+        JsonValue inventoryy = jsonData.get("inventory");
+        if (inventoryy.get("quake") != null && inventoryy.get("quake").getInt("value") > 0)
+            Inventory.inventory.put("quake", inventoryy.get("quake").getInt("value"));
+        if (inventoryy.get("power") != null && inventoryy.get("power").getInt("value") > 0)
+            Inventory.inventory.put("power", inventoryy.get("power").getInt("value"));
+        if (inventoryy.get("charge") != null && inventoryy.get("charge").getInt("value") > 0)
+            Inventory.inventory.put("charge", inventoryy.get("charge").getInt("value"));
+        if (inventoryy.get("potion") != null && inventoryy.get("potion").getInt("value") > 0)
+            Inventory.inventory.put("potion", inventoryy.get("potion").getInt("value"));
         JsonValue pigsJson = jsonData.get("pigs");
+        myPigs = new ArrayList<>();
         for (JsonValue pigJson : pigsJson) {
             float x = pigJson.get("x").getFloat("value");
             float y = pigJson.get("y").getFloat("value");
-            SmallPig pig = new SmallPig(this.world, (int) (x * SCALE_FACTOR), (int) (y * SCALE_FACTOR));
+            int z = pigJson.get("val").getInt("value");
+            Pig pig = new SmallPig(this.world, x, y);
+            if (z == 1) pig = new SmallPig(this.world, x, y);
+            else if (z == 2) pig = new Crazy(this.world, x, y);
+            else if (z == 3) pig = new King(this.world, x, y);
             pig.createBody();
+            pig.setHealth(pigJson.get("hp").getInt("value"));
             this.myPigs.add(pig);
-            this.pigHP = pigJson.get("hp").getInt("value");
         }
 
-        // Deserialize block collection
         JsonValue blocksJson = jsonData.get("blocks");
         for (JsonValue blockJson : blocksJson) {
             float x = blockJson.get("x").getFloat("value");
@@ -897,37 +1109,26 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
             float width = blockJson.get("width").getFloat("value");
             float height = blockJson.get("height").getFloat("value");
             String type = blockJson.get("type").getString("value");
-
-            // Use existing createBlock method
             createBlock(x, y, width, height, type);
         }
     }
 
-    // Save game state to file
     public void saveState() throws IOException {
         Json json = new Json();
         json.setOutputType(JsonWriter.OutputType.json);
-
-        // Create a file in the appropriate save directory
         FileHandle saveFile = Gdx.files.local("state.json");
         saveFile.writeString(json.toJson(this), false);
     }
 
-    // Load game state from file
     public static Level loadState(Main game) throws IOException {
         Json json = new Json();
-
-        // Attempt to read the save file
         FileHandle saveFile = Gdx.files.local("state.json");
         if (saveFile.exists()) {
             Level loadedLevel = json.fromJson(Level.class, saveFile.readString());
             loadedLevel.setGame(game);
             loadedLevel.isLoaded = true;
-//            json.readFields(loadedLevel, jsonData);
             return loadedLevel;
         }
-        // Return a new level if no save exists
         return new Level(game);
     }
 }
-

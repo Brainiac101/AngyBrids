@@ -12,10 +12,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-//import com.angybrids.Level;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class LoseScreen implements Screen, Serializable {
@@ -58,7 +56,6 @@ public class LoseScreen implements Screen, Serializable {
         } else {
             this.background = new Texture("levelAssets/bg3.png");
         }
-//        this.background = new Texture("levelAssets/bg1.png");
     }
 
     @Override
@@ -94,14 +91,7 @@ public class LoseScreen implements Screen, Serializable {
 
         if (Gdx.input.justTouched()) {
             if (retryButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
-                game.setScreen(new Level(level,game));
-//                try {
-//                    this.dispose();
-//                    game.setScreen(new Level(level, game,selectedBirds));
-//                } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-//                         IllegalAccessException e) {
-//                    throw new RuntimeException(e);
-//                }
+                game.setScreen(new Level(level,game, true));
             } else if (mapButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                 this.dispose();
                 game.setScreen(new Map(game));

@@ -31,6 +31,14 @@ configure(subprojects) {
   apply plugin: 'java-library'
   sourceCompatibility = 11
 
+  dependencies {
+//    implementation "com.badlogicgames.gdx:gdx:$libgdxVersion" // Core dependency
+    testImplementation 'org.mockito:mockito-inline:4.8.0' // Use the inline mock maker
+//    testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$libgdxVersion" // Headless backend
+//    testImplementation "com.badlogicgames.gdx:gdx-platform:$libgdxVersion:natives-desktop" // Desktop native support
+    testImplementation 'junit:junit:4.13.2'
+  }
+
   // From https://lyze.dev/2021/04/29/libGDX-Internal-Assets-List/
   // The article can be helpful when using assets.txt in your project.
   tasks.register('generateAssetList') {
@@ -68,6 +76,7 @@ subprojects {
     maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     maven { url 'https://jitpack.io' }
   }
+
 }
 
 eclipse.project.name = 'Angy Brids' + '-parent'

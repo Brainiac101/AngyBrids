@@ -20,30 +20,11 @@ import java.lang.reflect.InvocationTargetException;
 public class ShopPage implements Screen, Serializable {
     final Main game;
     private FitViewport viewport;
-    private Texture background;
-    private Texture title;
-    private boolean visibility;
-    private boolean eagleVisible;
-    private boolean powershotVisible;
-    private boolean superchargeVisible;
-    private boolean birdquakesVisible;
-    private boolean potionVisible;
+    private boolean visibility, powershotVisible, superchargeVisible, birdquakesVisible, potionVisible;
     private ShapeRenderer shapeRenderer;
     private BitmapFont font;
 
-    private Texture mapImage;
-    private Texture homeImage;
-    private Texture birdImage;
-    private Texture settingImage;
-    private Texture quitImage;
-    private Texture saveImage;
-
-    private Texture eagleImage;
-    private Texture powershotImage;
-    private Texture superchargeImage;
-    private Texture birdquakeImage;
-    private Texture potionImage;
-    private Texture coin;
+    private Texture title, background, mapImage, homeImage, birdImage, settingImage, quitImage, saveImage, powershotImage, superchargeImage, birdquakeImage, potionImage, coin;
     private static int coins = 0;
 
     public ShopPage(Main game) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -64,7 +45,6 @@ public class ShopPage implements Screen, Serializable {
         this.quitImage = new Texture("icons/exitIcon.png");
         this.saveImage = new Texture("icons/saveIcon.png");
 
-        this.eagleImage = new Eagle().getImage();
         this.powershotImage = new Powershot().getImage();
         this.superchargeImage = new Supercharge().getImage();
         this.birdquakeImage = new Birdquake().getImage();
@@ -104,10 +84,9 @@ public class ShopPage implements Screen, Serializable {
         Button saveButton = new Button(saveImage, Gdx.graphics.getWidth() - settingImage.getWidth() / 2 - 35,
             Gdx.graphics.getHeight() - 3 * settingImage.getHeight() / 2 - 25 - quitImage.getHeight(), 1.2f);
 
-        Button eagleButton = new Button(eagleImage, 200, 400, 1.2f);
         Button powershotButton = new Button(powershotImage, 900, 350, 1f);
         Button superchargeButton = new Button(superchargeImage, 200, 75, 1.2f);
-        Button birdquakeButton = new Button(birdquakeImage, 550, 75, 1.2f);
+        Button birdquakeButton = new Button(birdquakeImage, 200, 400, 1.2f);
         Button potionButton = new Button(potionImage, 900, 75, 1.2f);
 
         game.batch.begin();
@@ -123,8 +102,6 @@ public class ShopPage implements Screen, Serializable {
         //Setting Icon
         settingButton.getButtonSprite().draw(game.batch);
 
-        eagleButton.getButtonSprite().draw(game.batch);
-        font.draw(game.batch, "200", eagleButton.getButtonSprite().getX() + 50, eagleButton.getButtonSprite().getY()  - 10);
         powershotButton.getButtonSprite().draw(game.batch);
         font.draw(game.batch, "200", powershotButton.getButtonSprite().getX() + 70, powershotButton.getButtonSprite().getY() - 10);
         superchargeButton.getButtonSprite().draw(game.batch);
@@ -137,11 +114,6 @@ public class ShopPage implements Screen, Serializable {
         if (visibility) {
             quitButton.getButtonSprite().draw(game.batch);
             saveButton.getButtonSprite().draw(game.batch);
-        }
-        if (eagleVisible) {
-            font.setColor(Color.GREEN);
-            font.draw(game.batch, "Mighty Eagle", eagleButton.getButtonSprite().getX() , eagleButton.getButtonSprite().getY() + 25);
-            font.setColor(Color.BLACK);
         }
         if (powershotVisible) {
             font.setColor(Color.GREEN);
@@ -167,10 +139,8 @@ public class ShopPage implements Screen, Serializable {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0.94f, 0.23f, 0.57f, 1f);
-//        shapeRenderer.setColor(0.92f, 0.07f, 0.66f, 1f);
         shapeRenderer.rect(1000, Gdx.graphics.getHeight() - homeImage.getHeight() / 2 - 50, 120, 45);
         shapeRenderer.end();
-//        coins = 1500; //dummy value
 
         game.batch.begin();
         font.setColor(0, 0, 0, 1f);
@@ -189,18 +159,19 @@ public class ShopPage implements Screen, Serializable {
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
         else if ((visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
-        else if (eagleButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
-            eagleVisible = true;
-        else if (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+        else if (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
             birdquakesVisible = true;
-        else if (potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+        } else if (potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
             potionVisible = true;
-        else if (powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+        } else if (powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
             powershotVisible = true;
-        else if (superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
+            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+        } else if (superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
             superchargeVisible = true;
-        else {
-            eagleVisible = false;
+            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+        } else {
             birdquakesVisible = false;
             potionVisible = false;
             powershotVisible = false;
@@ -217,16 +188,39 @@ public class ShopPage implements Screen, Serializable {
                 if (homeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
                     game.setScreen(new HomePage(game));
-                }
-                else if (mapButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                } else if (mapButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
                     game.setScreen(new Map(game));
-                }
-                else if (birdButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                } else if (birdButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
                     game.setScreen(new BirdPage(game));
                 }
             }
+            if (superchargeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (coins >= 200) {
+                    coins -= 200;
+                    Inventory.addItem("charge");
+                }
+            }
+            if (powershotButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (coins >= 200) {
+                    coins -= 200;
+                    Inventory.addItem("power");
+                }
+            }
+            if (potionButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (coins >= 200) {
+                    coins -= 200;
+                    Inventory.addItem("potion");
+                }
+            }
+            if (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
+                if (coins >= 200) {
+                    coins -= 200;
+                    Inventory.addItem("quake");
+                }
+            }
+
         }
 
     }
@@ -258,14 +252,11 @@ public class ShopPage implements Screen, Serializable {
         coin.dispose();
         shapeRenderer.dispose();
         font.dispose();
-
         mapImage.dispose();
         settingImage.dispose();
         birdImage.dispose();
         quitImage.dispose();
         saveImage.dispose();
-
-        eagleImage.dispose();
         powershotImage.dispose();
         superchargeImage.dispose();
         birdquakeImage.dispose();

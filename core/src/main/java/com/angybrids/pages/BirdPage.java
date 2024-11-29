@@ -19,23 +19,9 @@ public class BirdPage implements Screen, Serializable {
     private FitViewport viewport;
     private boolean visibility;
 
-    private Texture background;
-    private Texture title;
+    private Texture background, title, mapImage, homeImage, settingImage, shopImage, quitImage, saveImage;
 
-    private Texture mapImage;
-    private Texture homeImage;
-    private Texture settingImage;
-    private Texture shopImage;
-    private Texture quitImage;
-    private Texture saveImage;
-
-    private Sprite red;
-    private Sprite chuck;
-    private Sprite bomb;
-    private Sprite matilda;
-    private Sprite blue;
-    private Sprite hal;
-    private Sprite terence;
+    private Sprite red, chuck, bomb, matilda, blue, hal, terence;
 
     public BirdPage(Main game) {
         this.game = game;
@@ -180,6 +166,5 @@ public class BirdPage implements Screen, Serializable {
         shopImage.dispose();
         quitImage.dispose();
         saveImage.dispose();
-
     }
 }

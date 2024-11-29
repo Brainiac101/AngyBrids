@@ -3,6 +3,7 @@ package com.angybrids.pages;
 import com.angybrids.Button;
 //import com.angybrids.Level;
 import com.angybrids.Main;
+import com.angybrids.powerUps.Inventory;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.*;
@@ -18,20 +19,12 @@ import java.util.ArrayList;
 public class Map implements Screen, Serializable {
     final Main game;
 
-    private Texture settingImage;
-    private Texture shopImage;
-    private Texture birdImage;
-    private Texture backImage;
-    private Texture quitImage;
-    private Texture saveImage;
-
-    private Texture mapTitle;
-    private Texture background;
-    private Texture levelSelect;
+    private Texture settingImage, shopImage, birdImage, backImage, quitImage, saveImage, mapTitle, background, levelSelect;
 
     private FitViewport viewport;
     private BitmapFont font;
     private boolean visibility;
+    public static int levelctr = 0;
 
     public Map(Main game) {
         this.game = game;
@@ -54,7 +47,7 @@ public class Map implements Screen, Serializable {
 
     @Override
     public void show() {
-
+        Inventory.display();
     }
 
     @Override
@@ -96,10 +89,6 @@ public class Map implements Screen, Serializable {
             saveButton.getButtonSprite().draw(game.batch);
         }
         game.batch.end();
-//        shapeRenderer.setColor(Color.RED);
-//        shapeRenderer.setColor(1f, 0.8f, 0.2f, 1f); // honey gold
-//        shapeRenderer.setColor(0.72f, 0.43f, 0.47f, 1f); // rose gold
-        // burnt sienna
         font.setColor(Color.WHITE);
         ArrayList<Button> levels = new ArrayList<>();
         int x = 240;
@@ -118,7 +107,7 @@ public class Map implements Screen, Serializable {
         }
         x = 230;
         y = 400;
-        int level = 1;
+        int level = 1 + 6 * levelctr;
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 3; j++) {
                 font.draw(game.batch, Integer.toString(level), x + 100, y + 75);
@@ -130,7 +119,6 @@ public class Map implements Screen, Serializable {
         }
         game.batch.end();
 
-        //Changing cursor to a pointer while hovering over an icon
         float touchX = Gdx.input.getX();
         float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
         if ((settingButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
@@ -153,7 +141,6 @@ public class Map implements Screen, Serializable {
         if (Gdx.input.justTouched()) {
             if (visibility && quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
                 System.exit(0);
-//            else if(visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {}
             if (settingButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
                 visibility = !visibility;
             else {
@@ -174,32 +161,31 @@ public class Map implements Screen, Serializable {
                     }
                 } else if (levels.get(0).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(0, game));
-//                        game.setScreen(new Level(1, game));
+                    game.setScreen(new com.angybrids.level.Level(0 + 6 * levelctr, game));
 
                 } else if (levels.get(1).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(1, game));
+                    game.setScreen(new com.angybrids.level.Level(1 + 6 * levelctr, game));
                 } else if (levels.get(2).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
 
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(2, game));
+                    game.setScreen(new com.angybrids.level.Level(2 + 6 * levelctr, game));
 
                 } else if (levels.get(3).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
 
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(3, game));
+                    game.setScreen(new com.angybrids.level.Level(3 + 6 * levelctr, game));
 
 
                 } else if (levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
 
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(4, game));
+                    game.setScreen(new com.angybrids.level.Level(4 + 6 * levelctr, game));
 
                 } else if (levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
 
                     this.dispose();
-                    game.setScreen(new com.angybrids.level.Level(5, game));
+                    game.setScreen(new com.angybrids.level.Level(5 + 6 * levelctr, game));
                 }
             }
         }

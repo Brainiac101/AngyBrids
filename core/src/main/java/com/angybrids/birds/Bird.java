@@ -64,6 +64,10 @@ public abstract class Bird implements Serializable {
         return sprite;
     }
 
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
     public Body createBody(float d) {
         bd.type = BodyDef.BodyType.DynamicBody;
         bd.position.set((sprite.getX() + sprite.getWidth() / 2) / SCALE_FACTOR, (sprite.getY() + sprite.getHeight() / 2) / SCALE_FACTOR);

@@ -3,11 +3,7 @@ package com.angybrids.birds;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-
-import static com.angybrids.level.Level.SCALE_FACTOR;
 
 public class Red  extends Bird {
     public Red() {
