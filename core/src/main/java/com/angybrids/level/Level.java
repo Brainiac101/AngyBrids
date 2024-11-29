@@ -61,12 +61,11 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     private final Vector2 initialTouchPosition = new Vector2();
     private final Vector2 launch;
     private Vector3 touchPosition;
-    List<Block> blockCollection = new ArrayList<>();
+    private List<Block> blockCollection = new ArrayList<>();
     private ShapeRenderer shapeRenderer;
 
     private boolean isLoaded = false;
-    private float screenTop;
-    private float screenRight;
+    private float screenTop, screenRight;
 
     private float multiplier = 1f;
     public String alert;
@@ -979,12 +978,20 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
     @Override
     public void dispose() {
         bg.dispose();
+        catapult.dispose();
         wood.dispose();
         stone.dispose();
         glass.dispose();
         tempBird1.dispose();
         tempBird2.dispose();
-        catapult.dispose();
+        powershotImage.dispose();
+        superchargeImage.dispose();
+        birdquakeImage.dispose();
+        potionImage.dispose();
+        pause.dispose();
+        quit.dispose();
+        resume.dispose();
+        retry.dispose();
         world.dispose();
         batch.dispose();
     }
