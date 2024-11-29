@@ -102,3 +102,6 @@ For example, `core:clean` removes `build` folder only from the `core` project.
 - [Game From Scratch tutorials](https://gamefromscratch.com/libgdx-tutorial-series/)
 - [Gradle Documentation](https://docs.gradle.org/current/userguide/userguide.html)
 - [Google Images](https://images.google.com/) (For textures)
+
+## UML
+![UML](https://github.com/user-attachments/assets/da92f0f3-2007-4c65-8e62-18e5304f4c2c)
