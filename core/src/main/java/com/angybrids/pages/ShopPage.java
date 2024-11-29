@@ -113,7 +113,7 @@ public class ShopPage implements Screen, Serializable {
 
         if (visibility) {
             quitButton.getButtonSprite().draw(game.batch);
-            saveButton.getButtonSprite().draw(game.batch);
+//            saveButton.getButtonSprite().draw(game.batch);
         }
         if (powershotVisible) {
             font.setColor(Color.GREEN);

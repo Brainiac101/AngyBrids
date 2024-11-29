@@ -85,7 +85,7 @@ public class Map implements Screen, Serializable {
         backButton.getButtonSprite().draw(game.batch);
         if (visibility) {
             quitButton.getButtonSprite().draw(game.batch);
-            saveButton.getButtonSprite().draw(game.batch);
+//            saveButton.getButtonSprite().draw(game.batch);
         }
         game.batch.end();
         font.setColor(Color.WHITE);

@@ -65,7 +65,7 @@ public class HomePage implements Screen, Serializable {
         game.batch.draw(title, Gdx.graphics.getWidth() / 2 - title.getWidth() / 2 - 10, 600, 5 * title.getWidth() / 4, 5 * title.getHeight() / 4);
         play.getButtonSprite().draw(game.batch);
         quit.getButtonSprite().draw(game.batch);
-        save.getButtonSprite().draw(game.batch);
+//        save.getButtonSprite().draw(game.batch);
         game.batch.end();
 
         float touchX = Gdx.input.getX();

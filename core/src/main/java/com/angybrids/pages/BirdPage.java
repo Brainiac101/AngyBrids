@@ -91,7 +91,7 @@ public class BirdPage implements Screen, Serializable {
         hal.draw(game.batch);
         if(visibility){
             quitButton.getButtonSprite().draw(game.batch);
-            saveButton.getButtonSprite().draw(game.batch);
+//            saveButton.getButtonSprite().draw(game.batch);
         }
         game.batch.end();
 
