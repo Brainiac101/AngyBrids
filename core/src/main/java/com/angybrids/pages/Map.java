@@ -132,8 +132,8 @@ public class Map implements Screen, Serializable {
             || levels.get(4).getButtonSprite().getBoundingRectangle().contains(touchX, touchY)
             || levels.get(5).getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-        else if ((visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
-            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
+//        else if ((visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
+//            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
         else
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
 

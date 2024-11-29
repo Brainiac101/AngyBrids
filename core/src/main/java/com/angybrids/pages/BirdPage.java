@@ -103,8 +103,8 @@ public class BirdPage implements Screen, Serializable {
             || (homeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-        else if ( (visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) )
-            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
+//        else if ( (visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) )
+//            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
         else
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
 

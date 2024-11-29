@@ -157,8 +157,8 @@ public class ShopPage implements Screen, Serializable {
             || (homeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY))
             || (visibility && quitButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-        else if ((visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
-            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
+//        else if ((visibility && saveButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)))
+//            Gdx.graphics.setSystemCursor(Cursor.SystemCursor.NotAllowed);
         else if (birdquakeButton.getButtonSprite().getBoundingRectangle().contains(touchX, touchY)) {
             birdquakesVisible = true;
             Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
