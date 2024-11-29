@@ -826,6 +826,7 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                         if (pig.getHealth() > 0) {
                             pig.setHealth(pig.getHealth() - 1);
                             if (pig.getHealth() <= 0) {
+                                pigCounter--;
                                 bodiesToDelete.add(pig.getBody());
                                 pig.setSprite(null);
                             }
@@ -932,6 +933,7 @@ public class Level extends InputAdapter implements Screen, Json.Serializable {
                                         if (body.equals(pig.getBody())) {
                                             pig.setHealth(pig.getHealth() - 1);
                                             if (pig.getHealth() <= 0) {
+                                                pigCounter--;
                                                 bodiesToDelete.add(pig.getBody());
                                                 pig.setSprite(null);
                                             }
